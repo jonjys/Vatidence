@@ -13,6 +13,9 @@ export const metadata: Metadata = {
   description: DESCRIPTION,
   alternates: { canonical: "/" },
   robots: { index: true, follow: true },
+  // Google Search Console ownership proof. Not a secret - it is served in the
+  // page HTML by design, and only proves control of this domain.
+  verification: { google: "vzFR7CpqG-nVc25MDUDBN5dUSuT8mGk8HpfKrinObPU" },
   openGraph: {
     type: "website",
     url: siteUrl,
