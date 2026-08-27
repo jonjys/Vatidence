@@ -229,6 +229,71 @@ delivered order.
 
 ---
 
+## Leaving it alone
+
+The point of this thing is that it runs without you. What that means in
+practice, so you can walk away and know what you are walking away from.
+
+### Runs itself, indefinitely
+
+Payment capture, verification against VIES, retries with backoff through a
+member-state outage, dead-lettering a row that will never resolve, the
+pro-rata refund for it, delivery of the PDF and CSV, booking the Stripe fee
+against the revenue, expiring abandoned checkouts, deleting them a week later,
+and erasing personal data at the end of the retention window. A dropped
+webhook, a closed browser tab and a multi-hour upstream outage all still end
+in a settled order, because the webhook, the result page and the nightly cron
+are three independent paths to the same place.
+
+Nobody has to approve an order, answer a customer, or watch a dashboard.
+
+### Needs a human, rarely
+
+- **A refund for an order taken by a different Stripe account.** Refunds can
+  only be issued by the account that took the payment. After an account
+  switch, older orders must be settled from the old dashboard by hand.
+- **A fee that cannot be backfilled.** Same cause: the payment intent belongs
+  to an account this deployment no longer has keys for, so
+  `fetchFeeForPaymentIntent` gets `resource_missing` forever. The sweep logs
+  `ledger.fee_unresolvable` and moves on; book that cost by hand or the ledger
+  overstates margin by it. One order is in this state today: the Stripe fee on
+  it was SEK 3.71 (SEK 2.62 processing + SEK 1.09 currency conversion).
+- **A Stripe account setting that changes under you.** Managed Payments
+  arriving on by default already took checkout down once. Every session opts
+  out explicitly now, but the class of failure is real: an account-level
+  change can break a deploy that did not change.
+
+### What it costs to stay alive
+
+The domain renewal, and nothing else that scales. Vercel Hobby, the Neon free
+branch and VIES are all free at this volume; Stripe takes its fee per
+transaction and nothing when there are none. An idle month costs the domain.
+
+### How you would know something is wrong
+
+`GET /api/health` reports env, database and VIES in one response, and is the
+only endpoint worth polling. In the logs, the lines that mean something needs
+attention are `fulfillment.error`, `webhook.bad_signature`,
+`cron.fee_backfill_failed` and `order.create_failed`; everything else is
+routine. A paid order that never leaves `awaiting_payment` means the webhook
+secret does not match the Stripe account - that is the one failure mode that
+takes money without delivering.
+
+### Not verified
+
+The refund path has never run with real money. No member state has failed on a
+real order, so the code that refunds an unanswerable row is covered by tests
+and has never been exercised against Stripe's live API.
+
+### If you come back to it
+
+The machine is finished; the constraint is distribution. At a EUR 4.90 minimum
+order, net of a Stripe fee that is 6.8% at that size, paid acquisition cannot
+pay for itself at any realistic click price. The single lever that changes
+that is the size of a typical order, not the number of visitors - which is why
+the free single-number check exists as the entry point, and why the next
+change worth making is to the pricing shape rather than to the code.
+
 ## Operating notes
 
 - **Its own schema.** Every table lives in the `vatproof` schema, not `public`.
