@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { ResultLive, type StatusPayload } from "@/components/result-live";
 import { errorMessage, log } from "@/lib/log";
@@ -6,6 +7,10 @@ import { isTerminal } from "@/lib/state";
 import { store } from "@/lib/store-pg";
 
 export const dynamic = "force-dynamic";
+
+// The token in this URL is the only credential protecting the order. Search
+// engines must not keep a copy of it.
+export const metadata: Metadata = { robots: { index: false, follow: false } };
 
 export default async function ResultPage({
   params,
