@@ -69,7 +69,7 @@ no external API account is needed — VIES requires no key and no registration.
 
 ### First-deploy traps
 
-Four things bite on a fresh Vercel project, none of them code:
+Five things bite on a fresh Vercel project, none of them code:
 
 1. **Deployment Protection.** New projects linked to a private repo enable
    Vercel Authentication, which 302-redirects every visitor to a Vercel login.
@@ -83,7 +83,15 @@ Four things bite on a fresh Vercel project, none of them code:
    same millisecond, with no build logs, was never built — that is an
    account-level block (Hobby free-tier deployment limits), not a build failure.
    Nothing in this repo can fix it; check the Vercel dashboard's usage page.
-4. **Cron frequency.** See the operating note below — Hobby rejects anything
+4. **Unauthorized Git author.** Vercel refuses to build a commit whose Git
+   author is not a member of the Vercel account. The symptom is identical to
+   trap 3 — instant `BLOCKED`, no build logs — but the cause is the commit's
+   `author email`, not usage limits. Compare the author of a deployment that
+   built against one that did not; if they differ, either set
+   `git config user.email` to the address on the Vercel account, or add the
+   other address as a member. A commit pushed by a tool or a second GitHub
+   account is the usual way this happens.
+5. **Cron frequency.** See the operating note below — Hobby rejects anything
    more frequent than daily.
 
 Until `DATABASE_URL` and the Stripe keys are set, the landing page renders but
