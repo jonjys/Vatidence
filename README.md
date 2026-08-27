@@ -67,6 +67,25 @@ the whole asymmetry the business sits on.
 There is no step 6. The cron entry in `vercel.json` is created by the deploy, and
 no external API account is needed — VIES requires no key and no registration.
 
+### First-deploy traps
+
+Four things bite on a fresh Vercel project, none of them code:
+
+1. **Deployment Protection.** New projects linked to a private repo enable
+   Vercel Authentication, which 302-redirects every visitor to a Vercel login.
+   A paying customer cannot reach checkout through that. Turn it off:
+   Project → Settings → Deployment Protection → Vercel Authentication → Disabled.
+2. **The right URL.** The production URL is the one listed under Project →
+   Domains (`<project>-<account>.vercel.app`). A `*.vercel.app` name that is not
+   in that list belongs to some other project and will always answer
+   `404: NOT_FOUND` no matter how correct this repo is.
+3. **Deployments in `BLOCKED` state.** A deployment created and "ready" in the
+   same millisecond, with no build logs, was never built — that is an
+   account-level block (Hobby free-tier deployment limits), not a build failure.
+   Nothing in this repo can fix it; check the Vercel dashboard's usage page.
+4. **Cron frequency.** See the operating note below — Hobby rejects anything
+   more frequent than daily.
+
 Until `DATABASE_URL` and the Stripe keys are set, the landing page renders but
 every database-backed route answers `503` and `/api/health` reports exactly
 which variable is missing. That is the intended behaviour, not a broken deploy.
