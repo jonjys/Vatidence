@@ -259,6 +259,37 @@ describe.skipIf(!url)("PgOrderStore against real Postgres", () => {
     expect((await store.getOrderById("33333333-3333-4333-8333-333333333333"))?.status).toBe("paid");
   });
 
+  it("deletes unpaid expired orders but cannot touch one that took money", async () => {
+    const PAID = "44444444-4444-4444-8444-444444444444";
+    await seed(ORDER_ID, ["SE556036079301"], 490);
+    await seed(PAID, ["FR40303265045"], 490);
+
+    // Both are expired; only the second ever saw money.
+    await store.markPaid(PAID, { paymentIntentId: "pi_9", chargeId: "ch_9", amountTotalMinor: 490, currency: "eur" });
+    await store.recordLedger({ orderId: PAID, kind: "charge", amountMinor: 490, currency: "eur", reference: "pi_9", memo: "paid" });
+    await query("UPDATE vatproof.orders SET status = 'expired', completed_at = now() - interval '30 days'");
+
+    expect(await store.deleteExpiredOrders(new Date(Date.now() - 7 * 86_400_000), 100)).toBe(1);
+
+    expect(await store.getOrderById(ORDER_ID)).toBeNull();
+    expect(await store.getOrderById(PAID)).not.toBeNull();
+    expect(await store.listLedger(PAID)).toHaveLength(1);
+  });
+
+  it("leaves a recently expired order alone", async () => {
+    await seed(ORDER_ID, ["SE556036079301"], 490);
+    await query("UPDATE vatproof.orders SET status = 'expired', completed_at = now()");
+    expect(await store.deleteExpiredOrders(new Date(Date.now() - 7 * 86_400_000), 100)).toBe(0);
+    expect(await store.getOrderById(ORDER_ID)).not.toBeNull();
+  });
+
+  it("removes the order's rows along with it", async () => {
+    await seed(ORDER_ID, ["SE556036079301", "FR40303265045"], 490);
+    await query("UPDATE vatproof.orders SET status = 'expired', completed_at = now() - interval '30 days'");
+    await store.deleteExpiredOrders(new Date(Date.now() - 7 * 86_400_000), 100);
+    expect(await store.listItems(ORDER_ID)).toHaveLength(0);
+  });
+
   it("claims each webhook event id once, enforced by the database", async () => {
     expect(await store.beginWebhookEvent("evt_1", "checkout.session.completed")).toBe(true);
     expect(await store.beginWebhookEvent("evt_1", "checkout.session.completed")).toBe(false);

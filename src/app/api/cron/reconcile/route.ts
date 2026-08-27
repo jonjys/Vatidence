@@ -11,6 +11,8 @@ export const maxDuration = 60;
 
 const MAX_ORDERS_PER_SWEEP = 25;
 const CHECKOUT_TTL_MS = 2 * 60 * 60 * 1000;
+/** How long an unpaid, expired order is kept before its rows are removed. */
+const EXPIRED_RETENTION_MS = 7 * 24 * 60 * 60 * 1000;
 
 /**
  * Recovery sweep. Nothing here is on the happy path - it exists so that a
@@ -26,10 +28,12 @@ export async function GET(req: NextRequest): Promise<Response> {
 
   const startedAt = Date.now();
   const budgetMs = 50_000;
-  const summary = { expired: 0, resumed: 0, completed: 0, purged: 0, errors: 0 };
+  const summary = { expired: 0, deleted: 0, resumed: 0, completed: 0, purged: 0, errors: 0 };
 
   try {
     summary.expired = await store.expireStaleOrders(new Date(Date.now() - CHECKOUT_TTL_MS), 200);
+    // Storage is finite and shared; unpaid orders are pure residue.
+    summary.deleted = await store.deleteExpiredOrders(new Date(Date.now() - EXPIRED_RETENTION_MS), 1000);
   } catch (e) {
     summary.errors++;
     log.error("cron.expire_failed", { error: errorMessage(e) });

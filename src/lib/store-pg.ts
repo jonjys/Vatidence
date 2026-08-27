@@ -369,6 +369,25 @@ export class PgOrderStore implements OrderStore {
     return rows.length;
   }
 
+  async deleteExpiredOrders(olderThan: Date, limit: number): Promise<number> {
+    // Guarded twice over: only 'expired' orders, and only those that never
+    // produced a ledger entry. Deleting anything that touched money is a bug,
+    // so the query refuses to express it. order_items cascade.
+    const rows = await query<{ id: string }>(
+      `DELETE FROM vatproof.orders
+       WHERE id IN (
+         SELECT o.id FROM vatproof.orders o
+         WHERE o.status = 'expired'
+           AND o.completed_at < $1
+           AND NOT EXISTS (SELECT 1 FROM vatproof.ledger_entries l WHERE l.order_id = o.id)
+         ORDER BY o.completed_at ASC LIMIT $2
+       )
+       RETURNING id`,
+      [olderThan, limit],
+    );
+    return rows.length;
+  }
+
   async beginWebhookEvent(eventId: string, type: string): Promise<boolean> {
     const row = await queryOne<{ event_id: string }>(
       `INSERT INTO vatproof.webhook_events (event_id, type) VALUES ($1, $2)

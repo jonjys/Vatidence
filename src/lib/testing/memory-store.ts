@@ -240,6 +240,20 @@ export class MemoryOrderStore implements OrderStore {
     return n;
   }
 
+  async deleteExpiredOrders(olderThan: Date, limit: number): Promise<number> {
+    let n = 0;
+    for (const o of [...this.orders.values()]) {
+      if (n >= limit) break;
+      const touchedMoney = this.ledger.some((e) => e.orderId === o.id);
+      if (o.status === "expired" && o.completedAt && o.completedAt < olderThan && !touchedMoney) {
+        this.orders.delete(o.id);
+        this.items.delete(o.id);
+        n++;
+      }
+    }
+    return n;
+  }
+
   async beginWebhookEvent(eventId: string, type: string): Promise<boolean> {
     if (this.webhookEvents.has(eventId)) return false;
     this.webhookEvents.set(eventId, { type, processedAt: null, error: null });

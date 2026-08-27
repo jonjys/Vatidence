@@ -57,6 +57,12 @@ export interface OrderStore {
   findDueOrders(limit: number): Promise<Order[]>;
   /** Checkout sessions that were never paid. */
   expireStaleOrders(olderThan: Date, limit: number): Promise<number>;
+  /**
+   * Delete expired orders outright. They never took money, so they carry no
+   * ledger entry and no obligation - only rows. Without this, abandoned and
+   * abusive checkouts accumulate forever against a finite storage budget.
+   */
+  deleteExpiredOrders(olderThan: Date, limit: number): Promise<number>;
 
   /** Stripe webhook idempotency. Returns false when the event was already seen. */
   beginWebhookEvent(eventId: string, type: string): Promise<boolean>;
