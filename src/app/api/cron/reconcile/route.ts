@@ -4,6 +4,7 @@ import { kickFulfillment } from "@/lib/kick";
 import { errorMessage, log } from "@/lib/log";
 import { pruneRateLimits } from "@/lib/ratelimit";
 import { store } from "@/lib/store-pg";
+import { fetchFeeForPaymentIntent } from "@/lib/stripe";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -13,6 +14,8 @@ const MAX_ORDERS_PER_SWEEP = 25;
 const CHECKOUT_TTL_MS = 2 * 60 * 60 * 1000;
 /** How long an unpaid, expired order is kept before its rows are removed. */
 const EXPIRED_RETENTION_MS = 7 * 24 * 60 * 60 * 1000;
+/** Grace period before chasing a fee, so Stripe has settled the balance transaction. */
+const FEE_SETTLE_MS = 5 * 60 * 1000;
 
 /**
  * Recovery sweep. Nothing here is on the happy path - it exists so that a
@@ -28,7 +31,7 @@ export async function GET(req: NextRequest): Promise<Response> {
 
   const startedAt = Date.now();
   const budgetMs = 50_000;
-  const summary = { expired: 0, deleted: 0, resumed: 0, completed: 0, purged: 0, errors: 0 };
+  const summary = { expired: 0, deleted: 0, resumed: 0, completed: 0, fees: 0, purged: 0, errors: 0 };
 
   try {
     summary.expired = await store.expireStaleOrders(new Date(Date.now() - CHECKOUT_TTL_MS), 200);
@@ -53,6 +56,31 @@ export async function GET(req: NextRequest): Promise<Response> {
   } catch (e) {
     summary.errors++;
     log.error("cron.sweep_failed", { error: errorMessage(e) });
+  }
+
+  try {
+    // The fee webhook races payment capture, and Stripe creates the balance
+    // transaction asynchronously. Either way the ledger would silently record
+    // revenue without its cost, so unbooked fees are swept up here.
+    const missing = await store.findOrdersMissingFee(new Date(Date.now() - FEE_SETTLE_MS), 50);
+    for (const order of missing) {
+      if (!order.stripePaymentIntentId) continue;
+      const fee = await fetchFeeForPaymentIntent(order.stripePaymentIntentId);
+      if (!fee) continue;
+      await store.recordLedger({
+        orderId: order.id,
+        kind: "stripe_fee",
+        amountMinor: -fee.feeMinor,
+        currency: fee.currency,
+        reference: fee.chargeId,
+        memo: "Stripe processing fee",
+      });
+      summary.fees++;
+      log.info("ledger.fee_backfilled", { orderId: order.id, feeMinor: fee.feeMinor });
+    }
+  } catch (e) {
+    summary.errors++;
+    log.error("cron.fee_backfill_failed", { error: errorMessage(e) });
   }
 
   try {

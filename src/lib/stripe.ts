@@ -85,14 +85,36 @@ export async function createCheckoutSession(input: CheckoutInput): Promise<Strip
   );
 }
 
+export type ChargeFee = { feeMinor: number; currency: string; chargeId: string };
+
 /**
  * Stripe's processing fee is our only variable cost, and it is only knowable
- * from the balance transaction. Fetched once per charge so the ledger records
- * true margin rather than an estimate.
+ * from the balance transaction. Fetched so the ledger records true margin
+ * rather than an estimate.
+ *
+ * Returns null when the balance transaction does not exist yet - Stripe
+ * creates it asynchronously, so a charge webhook can arrive before the fee is
+ * knowable. The cron sweep retries those; see backfillMissingFees.
  */
-export async function fetchChargeFee(chargeId: string): Promise<{ feeMinor: number; currency: string } | null> {
+export async function fetchChargeFee(chargeId: string): Promise<ChargeFee | null> {
   const charge = await stripe().charges.retrieve(chargeId, { expand: ["balance_transaction"] });
   const bt = charge.balance_transaction;
   if (!bt || typeof bt === "string") return null;
-  return { feeMinor: bt.fee, currency: bt.currency };
+  return { feeMinor: bt.fee, currency: bt.currency, chargeId: charge.id };
+}
+
+/**
+ * Same, starting from the payment intent. The checkout.session.completed
+ * payload carries the payment intent as a bare id, so this is the only handle
+ * an order is guaranteed to have.
+ */
+export async function fetchFeeForPaymentIntent(paymentIntentId: string): Promise<ChargeFee | null> {
+  const intent = await stripe().paymentIntents.retrieve(paymentIntentId, {
+    expand: ["latest_charge.balance_transaction"],
+  });
+  const charge = intent.latest_charge;
+  if (!charge || typeof charge === "string") return null;
+  const bt = charge.balance_transaction;
+  if (!bt || typeof bt === "string") return null;
+  return { feeMinor: bt.fee, currency: bt.currency, chargeId: charge.id };
 }

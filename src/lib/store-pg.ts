@@ -357,6 +357,22 @@ export class PgOrderStore implements OrderStore {
     return rows.map(toOrder);
   }
 
+  async findOrdersMissingFee(paidBefore: Date, limit: number): Promise<Order[]> {
+    const rows = await query<OrderRow>(
+      `SELECT ${ORDER_COLUMNS} FROM vatproof.orders o
+       WHERE o.stripe_payment_intent_id IS NOT NULL
+         AND o.paid_at IS NOT NULL
+         AND o.paid_at < $1
+         AND NOT EXISTS (
+           SELECT 1 FROM vatproof.ledger_entries l
+           WHERE l.order_id = o.id AND l.kind = 'stripe_fee'
+         )
+       ORDER BY o.paid_at ASC LIMIT $2`,
+      [paidBefore, limit],
+    );
+    return rows.map(toOrder);
+  }
+
   async expireStaleOrders(olderThan: Date, limit: number): Promise<number> {
     const rows = await query<{ id: string }>(
       `UPDATE vatproof.orders SET status = 'expired', completed_at = now()

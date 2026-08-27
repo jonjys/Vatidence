@@ -227,6 +227,20 @@ export class MemoryOrderStore implements OrderStore {
       .map((o) => ({ ...o }));
   }
 
+  async findOrdersMissingFee(paidBefore: Date, limit: number): Promise<Order[]> {
+    return [...this.orders.values()]
+      .filter(
+        (o) =>
+          o.stripePaymentIntentId !== null &&
+          o.paidAt !== null &&
+          o.paidAt < paidBefore &&
+          !this.ledger.some((e) => e.orderId === o.id && e.kind === "stripe_fee"),
+      )
+      .sort((a, b) => (a.paidAt?.getTime() ?? 0) - (b.paidAt?.getTime() ?? 0))
+      .slice(0, limit)
+      .map((o) => ({ ...o }));
+  }
+
   async expireStaleOrders(olderThan: Date, limit: number): Promise<number> {
     let n = 0;
     for (const o of this.orders.values()) {

@@ -55,6 +55,12 @@ export interface OrderStore {
 
   /** Recovery sweep: paid/processing orders with work due. */
   findDueOrders(limit: number): Promise<Order[]>;
+  /**
+   * Paid orders whose Stripe fee was never booked. The fee webhook can lose a
+   * race against payment capture, and the balance transaction can lag the
+   * charge, so the ledger needs a way to catch up or it overstates margin.
+   */
+  findOrdersMissingFee(paidBefore: Date, limit: number): Promise<Order[]>;
   /** Checkout sessions that were never paid. */
   expireStaleOrders(olderThan: Date, limit: number): Promise<number>;
   /**

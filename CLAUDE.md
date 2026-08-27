@@ -85,3 +85,8 @@ otherwise never execute the runner.
   ledger reference. A failed refund leaves the order in `processing` with the
   obligation intact rather than losing it.
 - Nothing is deleted that ever produced a ledger entry.
+- Revenue is never booked without its cost. `checkout.session.completed` and
+  `charge.succeeded` are delivered in the same second and race each other, and
+  Stripe creates the balance transaction asynchronously, so the fee webhook
+  cannot be relied on alone. The cron sweep backfills any paid order older
+  than five minutes that has no `stripe_fee` entry.

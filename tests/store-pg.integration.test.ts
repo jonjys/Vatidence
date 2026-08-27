@@ -290,6 +290,34 @@ describe.skipIf(!url)("PgOrderStore against real Postgres", () => {
     expect(await store.listItems(ORDER_ID)).toHaveLength(0);
   });
 
+  it("finds paid orders whose Stripe fee was never booked", async () => {
+    const BOOKED = "55555555-5555-4555-8555-555555555555";
+    await seed(ORDER_ID, ["SE556036079301"], 490);
+    await seed(BOOKED, ["FR40303265045"], 490);
+    for (const id of [ORDER_ID, BOOKED]) {
+      await store.markPaid(id, { paymentIntentId: `pi_${id}`, chargeId: null, amountTotalMinor: 490, currency: "eur" });
+      await store.recordLedger({ orderId: id, kind: "charge", amountMinor: 490, currency: "eur", reference: `pi_${id}`, memo: "paid" });
+    }
+    // Only one of them has its fee booked.
+    await store.recordLedger({ orderId: BOOKED, kind: "stripe_fee", amountMinor: -55, currency: "eur", reference: "ch_x", memo: "fee" });
+    await query("UPDATE vatproof.orders SET paid_at = now() - interval '10 minutes'");
+
+    const missing = await store.findOrdersMissingFee(new Date(Date.now() - 5 * 60_000), 50);
+    expect(missing.map((o) => o.id)).toEqual([ORDER_ID]);
+  });
+
+  it("does not chase a fee before Stripe has had time to settle it", async () => {
+    await seed(ORDER_ID, ["SE556036079301"], 490);
+    await store.markPaid(ORDER_ID, { paymentIntentId: "pi_fresh", chargeId: null, amountTotalMinor: 490, currency: "eur" });
+    expect(await store.findOrdersMissingFee(new Date(Date.now() - 5 * 60_000), 50)).toHaveLength(0);
+  });
+
+  it("ignores unpaid orders when chasing fees", async () => {
+    await seed(ORDER_ID, ["SE556036079301"], 490);
+    await query("UPDATE vatproof.orders SET paid_at = now() - interval '1 hour'");
+    expect(await store.findOrdersMissingFee(new Date(), 50)).toHaveLength(0);
+  });
+
   it("claims each webhook event id once, enforced by the database", async () => {
     expect(await store.beginWebhookEvent("evt_1", "checkout.session.completed")).toBe(true);
     expect(await store.beginWebhookEvent("evt_1", "checkout.session.completed")).toBe(false);
