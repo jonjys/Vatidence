@@ -3,6 +3,6 @@
   "framework": "nextjs",
   "regions": ["arn1"],
   "crons": [
-    { "path": "/api/cron/reconcile", "schedule": "0 * * * *" }
+    { "path": "/api/cron/reconcile", "schedule": "0 3 * * *" }
   ]
 }

@@ -7,7 +7,7 @@ import { store } from "@/lib/store-pg";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-export const maxDuration = 300;
+export const maxDuration = 60;
 
 const MAX_ORDERS_PER_SWEEP = 25;
 const CHECKOUT_TTL_MS = 2 * 60 * 60 * 1000;
@@ -25,7 +25,7 @@ export async function GET(req: NextRequest): Promise<Response> {
   }
 
   const startedAt = Date.now();
-  const budgetMs = 240_000;
+  const budgetMs = 50_000;
   const summary = { expired: 0, resumed: 0, completed: 0, purged: 0, errors: 0 };
 
   try {

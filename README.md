@@ -67,6 +67,10 @@ the whole asymmetry the business sits on.
 There is no step 6. The cron entry in `vercel.json` is created by the deploy, and
 no external API account is needed — VIES requires no key and no registration.
 
+Until `DATABASE_URL` and the Stripe keys are set, the landing page renders but
+every database-backed route answers `503` and `/api/health` reports exactly
+which variable is missing. That is the intended behaviour, not a broken deploy.
+
 ---
 
 ## How an order runs itself
@@ -202,9 +206,13 @@ delivered order.
 - **Data retention.** `DATA_RETENTION_DAYS` (default 90) after an order is
   placed, VAT numbers and trader details are erased by the cron sweep and the
   results stop being retrievable. Ledger rows survive, without identifying data.
-- **Vercel cron frequency.** `vercel.json` requests hourly. On the Hobby plan
-  Vercel runs cron jobs once per day; the webhook and result-page triggers cover
-  the normal path, but the Pro plan is what makes the recovery net hourly.
+- **Vercel cron frequency.** `vercel.json` ships a daily sweep (`0 3 * * *`)
+  because the Hobby plan **rejects any cron schedule more frequent than once a
+  day at deploy time**. On Pro, change it to `0 * * * *` and raise
+  `maxDuration` in `src/app/api/cron/reconcile/route.ts` from 60 to 300 — that
+  turns the recovery net from daily into hourly. It only matters for orders
+  whose customer closed the tab *and* whose webhook pass hit a VIES outage;
+  the webhook and result-page triggers cover everything else.
 - **VIES throttling.** Raising `VIES_MAX_CONCURRENCY` above ~6 tends to produce
   `MS_MAX_CONCURRENT_REQ`, which costs retries, not money. The default is 4.
 - **Scaling the upstream is free.** Cost per order is a Stripe fee and nothing
