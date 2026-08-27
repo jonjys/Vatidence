@@ -33,4 +33,9 @@ jobs:
         run: npm test
         env:
           TEST_DATABASE_URL: postgres://postgres:postgres@localhost:5432/vatproof_test
+      # DATABASE_URL is set so the build exercises the real migration runner
+      # rather than skipping it. A migration script that only ever runs in
+      # production is a script nobody has tested.
       - run: npm run build
+        env:
+          DATABASE_URL: postgres://postgres:postgres@localhost:5432/vatproof_test

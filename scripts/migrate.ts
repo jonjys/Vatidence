@@ -46,7 +46,10 @@ async function main(): Promise<void> {
     // Two deploys building at once must not both try to apply the same file.
     await client.query("SELECT pg_advisory_lock($1)", [LOCK_KEY]);
 
-    await client.query(`CREATE TABLE IF NOT EXISTS schema_migrations (
+    // The application owns a schema of its own; see 0001_init.sql for why.
+    await client.query("CREATE SCHEMA IF NOT EXISTS vatproof");
+
+    await client.query(`CREATE TABLE IF NOT EXISTS vatproof.schema_migrations (
       name text PRIMARY KEY,
       checksum text NOT NULL,
       applied_at timestamptz NOT NULL DEFAULT now()
