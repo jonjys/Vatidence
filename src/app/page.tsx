@@ -7,13 +7,19 @@ export const dynamic = "force-static";
 export default function HomePage() {
   return (
     <>
-      <h1>Verify a list of EU VAT numbers and get the official VIES consultation numbers.</h1>
-      <p className="lede">
-        Paste or upload your customer VAT numbers. Every one is checked against the European Commission&apos;s VIES
-        service <strong>with your own VAT number attached</strong>, which is the only way VIES issues the consultation
-        number tax authorities accept as proof. You get a sealed PDF evidence pack and a CSV, immediately after payment.
-        No account, no subscription.
-      </p>
+      <div className="hero">
+        <h1>Bulk EU VAT checks, with the official proof.</h1>
+        <p className="lede">
+          Checked against the European Commission&apos;s VIES service with your own VAT number attached — the only way
+          to get a consultation number an auditor accepts. Sealed PDF and CSV, immediately.
+        </p>
+        <ul className="specs">
+          <li>27 member states</li>
+          <li>Consultation number</li>
+          <li>PDF + CSV</li>
+          <li>No account</li>
+        </ul>
+      </div>
 
       <OrderForm />
 

@@ -32,6 +32,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en">
       <body>
         <main>
+          <header className="masthead">
+            <Link href="/" className="wordmark">
+              VAT<span>Proof</span>
+            </Link>
+            <span className="kicker">EU VAT verification</span>
+          </header>
           {children}
           <footer>
             <Link href="/">Home</Link>

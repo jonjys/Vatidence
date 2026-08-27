@@ -72,6 +72,9 @@ export function OrderForm() {
 
   return (
     <div className="panel">
+      <p className="card-title">Start a verification</p>
+      <p className="card-sub">Paste your list, see the price, pay once. Nothing is charged until you confirm.</p>
+
       <div className="field">
         <label htmlFor="requester">Your own EU VAT number</label>
         <input
