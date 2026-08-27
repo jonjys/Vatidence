@@ -4,7 +4,7 @@ import { kickFulfillment } from "@/lib/kick";
 import { errorMessage, log } from "@/lib/log";
 import { pruneRateLimits } from "@/lib/ratelimit";
 import { store } from "@/lib/store-pg";
-import { fetchFeeForPaymentIntent } from "@/lib/stripe";
+import { feeMemo, fetchFeeForPaymentIntent, isPermanentlyUnresolvable } from "@/lib/stripe";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -65,18 +65,36 @@ export async function GET(req: NextRequest): Promise<Response> {
     const missing = await store.findOrdersMissingFee(new Date(Date.now() - FEE_SETTLE_MS), 50);
     for (const order of missing) {
       if (!order.stripePaymentIntentId) continue;
-      const fee = await fetchFeeForPaymentIntent(order.stripePaymentIntentId);
-      if (!fee) continue;
-      await store.recordLedger({
-        orderId: order.id,
-        kind: "stripe_fee",
-        amountMinor: -fee.feeMinor,
-        currency: fee.currency,
-        reference: fee.chargeId,
-        memo: "Stripe processing fee",
-      });
-      summary.fees++;
-      log.info("ledger.fee_backfilled", { orderId: order.id, feeMinor: fee.feeMinor });
+      // Per order, not per sweep. The list is ordered oldest first, so a single
+      // unfetchable payment intent at the head would otherwise abort the
+      // backfill on every run forever - and the ledger would silently keep
+      // recording revenue with no cost against it.
+      try {
+        const fee = await fetchFeeForPaymentIntent(order.stripePaymentIntentId);
+        if (!fee) continue;
+        await store.recordLedger({
+          orderId: order.id,
+          kind: "stripe_fee",
+          amountMinor: -fee.feeMinor,
+          currency: fee.currency,
+          reference: fee.chargeId,
+          memo: feeMemo(fee),
+        });
+        summary.fees++;
+        log.info("ledger.fee_backfilled", { orderId: order.id, feeMinor: fee.feeMinor, currency: fee.currency });
+      } catch (e) {
+        summary.errors++;
+        if (isPermanentlyUnresolvable(e)) {
+          // Almost always an order taken by a Stripe account this deployment no
+          // longer holds the keys for. Its fee has to be booked by hand.
+          log.warn("ledger.fee_unresolvable", {
+            orderId: order.id,
+            paymentIntentId: order.stripePaymentIntentId,
+          });
+        } else {
+          log.error("cron.fee_backfill_failed", { orderId: order.id, error: errorMessage(e) });
+        }
+      }
     }
   } catch (e) {
     summary.errors++;

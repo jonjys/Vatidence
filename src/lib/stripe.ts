@@ -123,7 +123,66 @@ function checkoutParams(input: CheckoutInput): Stripe.Checkout.SessionCreatePara
   };
 }
 
-export type ChargeFee = { feeMinor: number; currency: string; chargeId: string };
+export type ChargeFee = {
+  /** The fee as Stripe settled it, in the account's settlement currency. */
+  settledMinor: number;
+  settledCurrency: string;
+  /**
+   * The same fee expressed in the currency the customer was charged in.
+   *
+   * These differ whenever the account settles in a different currency than it
+   * prices in - this account prices in EUR and settles in SEK, which also adds
+   * a currency conversion fee. The ledger sums amount_minor to get margin, so
+   * an entry in a foreign currency does not merely look odd, it makes the
+   * arithmetic wrong. Every entry is therefore booked in the order's currency.
+   */
+  feeMinor: number;
+  currency: string;
+  chargeId: string;
+};
+
+/**
+ * Stripe reports the fee only on the balance transaction, and only in the
+ * settlement currency. When that differs from the presentment currency the
+ * balance transaction also carries the exchange rate it applied, so the fee
+ * can be expressed in the currency the customer actually paid without
+ * inventing a rate of our own.
+ */
+export function feeFromBalanceTransaction(bt: Stripe.BalanceTransaction, chargeId: string): ChargeFee {
+  const settledCurrency = bt.currency;
+  const rate = bt.exchange_rate;
+  const converted = rate && rate > 0 ? Math.round(bt.fee / rate) : bt.fee;
+  return {
+    settledMinor: bt.fee,
+    settledCurrency,
+    feeMinor: converted,
+    // Without a rate there was no conversion, so the currencies are the same.
+    currency: rate && rate > 0 ? presentmentCurrencyOf(bt) : settledCurrency,
+    chargeId,
+  };
+}
+
+/**
+ * A converted balance transaction does not name the presentment currency, but
+ * the charge it came from does; `source_currency` carries it when Stripe
+ * populates it. Falling back to the settlement currency is safe because that
+ * is only reached when no conversion happened.
+ */
+function presentmentCurrencyOf(bt: Stripe.BalanceTransaction): string {
+  const withSource = bt as Stripe.BalanceTransaction & { source_currency?: string };
+  return withSource.source_currency ?? bt.currency;
+}
+
+/** True when the fee had to be converted out of the settlement currency. */
+export function feeWasConverted(fee: ChargeFee): boolean {
+  return fee.settledCurrency !== fee.currency || fee.settledMinor !== fee.feeMinor;
+}
+
+export function feeMemo(fee: ChargeFee): string {
+  if (!feeWasConverted(fee)) return "Stripe processing fee";
+  // Keep the settled amount on the entry: it is what actually left the balance.
+  return `Stripe processing fee (settled ${fee.settledMinor} ${fee.settledCurrency.toUpperCase()})`;
+}
 
 /**
  * Stripe's processing fee is our only variable cost, and it is only knowable
@@ -132,13 +191,13 @@ export type ChargeFee = { feeMinor: number; currency: string; chargeId: string }
  *
  * Returns null when the balance transaction does not exist yet - Stripe
  * creates it asynchronously, so a charge webhook can arrive before the fee is
- * knowable. The cron sweep retries those; see backfillMissingFees.
+ * knowable. The cron sweep retries those.
  */
 export async function fetchChargeFee(chargeId: string): Promise<ChargeFee | null> {
   const charge = await stripe().charges.retrieve(chargeId, { expand: ["balance_transaction"] });
   const bt = charge.balance_transaction;
   if (!bt || typeof bt === "string") return null;
-  return { feeMinor: bt.fee, currency: bt.currency, chargeId: charge.id };
+  return feeFromBalanceTransaction(bt, charge.id);
 }
 
 /**
@@ -154,5 +213,14 @@ export async function fetchFeeForPaymentIntent(paymentIntentId: string): Promise
   if (!charge || typeof charge === "string") return null;
   const bt = charge.balance_transaction;
   if (!bt || typeof bt === "string") return null;
-  return { feeMinor: bt.fee, currency: bt.currency, chargeId: charge.id };
+  return feeFromBalanceTransaction(bt, charge.id);
+}
+
+/**
+ * A payment intent that belongs to a different Stripe account can never be
+ * resolved from this one. After an account switch the old orders are exactly
+ * that, and chasing them nightly forever is noise, not diligence.
+ */
+export function isPermanentlyUnresolvable(e: unknown): boolean {
+  return e instanceof Stripe.errors.StripeInvalidRequestError && e.code === "resource_missing";
 }

@@ -4,7 +4,7 @@ import { env } from "@/lib/env";
 import { kickFulfillment } from "@/lib/kick";
 import { errorMessage, log } from "@/lib/log";
 import { store } from "@/lib/store-pg";
-import { fetchChargeFee, stripe } from "@/lib/stripe";
+import { feeMemo, fetchChargeFee, stripe } from "@/lib/stripe";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -104,9 +104,9 @@ async function handleEvent(event: Stripe.Event): Promise<void> {
         amountMinor: -fee.feeMinor,
         currency: fee.currency,
         reference: charge.id,
-        memo: "Stripe processing fee",
+        memo: feeMemo(fee),
       });
-      log.info("ledger.fee", { orderId: order.id, feeMinor: fee.feeMinor });
+      log.info("ledger.fee", { orderId: order.id, feeMinor: fee.feeMinor, currency: fee.currency });
       return;
     }
 

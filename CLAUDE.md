@@ -62,6 +62,20 @@ real time to discover.
   and the automatic refund never fires because that only covers paid orders.
 - Refunds can only be issued from the account that took the payment, so orders
   taken before an account switch have to be settled from the old dashboard.
+- **After an account switch, old orders can never have their fee backfilled.**
+  Their payment intent belongs to the other account, so
+  `fetchFeeForPaymentIntent` gets `resource_missing` forever. The cron catches
+  that per order rather than per sweep - the list is oldest-first, so one
+  orphan at the head used to abort the whole backfill on every run, leaving
+  every *later* order booking revenue with no cost. Those orders' fees have to
+  be entered by hand from the old dashboard.
+- **The account settles in SEK while the product prices in EUR.** Stripe
+  therefore reports the fee in SEK and adds a currency conversion fee on top
+  (SEK 1.09 of SEK 3.71 on the first sale - about 2% of gross, purely for the
+  conversion). Adding a EUR balance in Stripe would remove that part. The
+  ledger sums `amount_minor` to get margin, so fees are converted into the
+  order's currency using the balance transaction's own `exchange_rate` before
+  being booked, with the settled amount kept in the memo.
 
 ## How migrations work
 

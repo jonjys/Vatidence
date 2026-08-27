@@ -60,6 +60,9 @@ vi.mock("@/lib/vies", async (importOriginal) => {
   return { ...actual, HttpViesClient: FakeHttpViesClient };
 });
 
+/** Payment intents the Stripe stand-in cannot resolve, as after an account switch. */
+const unresolvableIntents = new Set<string>();
+
 const refundCalls: Array<{ amountMinor: number; idempotencyKey: string }> = [];
 let checkoutCounter = 0;
 
@@ -72,7 +75,25 @@ vi.mock("@/lib/stripe", async (importOriginal) => {
       url: `https://checkout.stripe.test/${input.publicToken}`,
       amount_total: input.amountMinor,
     }),
-    fetchChargeFee: async () => ({ feeMinor: 32, currency: "eur" }),
+    // Mirrors the real shape: Stripe settles in SEK, the order is priced in
+    // EUR, so the entry booked into the ledger must be the converted one.
+    fetchChargeFee: async () => ({
+      feeMinor: 32,
+      currency: "eur",
+      settledMinor: 355,
+      settledCurrency: "sek",
+      chargeId: "ch_test",
+    }),
+    fetchFeeForPaymentIntent: async (paymentIntentId: string) => {
+      if (unresolvableIntents.has(paymentIntentId)) {
+        throw new Stripe.errors.StripeInvalidRequestError({
+          type: "invalid_request_error",
+          message: `No such payment_intent: '${paymentIntentId}'`,
+          code: "resource_missing",
+        });
+      }
+      return { feeMinor: 32, currency: "eur", settledMinor: 355, settledCurrency: "sek", chargeId: "ch_test" };
+    },
     stripeRefunds: {
       refund: async (params: { amountMinor: number; idempotencyKey: string }) => {
         refundCalls.push({ ...params });
@@ -173,6 +194,7 @@ describe.skipIf(!url)("HTTP money path", () => {
     afterQueue.length = 0;
     refundCalls.length = 0;
     viesScript.clear();
+    unresolvableIntents.clear();
   });
 
   async function placeOrder(vats: string[], ip = "203.0.113.10", key = "idem-key-1") {
@@ -390,6 +412,49 @@ describe.skipIf(!url)("HTTP money path", () => {
       params: Promise.resolve({ token: "does-not-exist" }),
     });
     expect(res.status).toBe(404);
+  });
+
+  it("keeps backfilling fees when one order's payment intent is unresolvable", async () => {
+    // After a Stripe account switch, orders taken by the old account can never
+    // have their fee fetched. findOrdersMissingFee returns oldest first, so
+    // that orphan sits at the head of the list on every sweep - if one failure
+    // aborted the loop, no later order would ever get its cost booked and the
+    // ledger would overstate margin forever.
+    const older = await placeOrder(["SE556036079301"], "203.0.113.41", "orphan-fee-key");
+    const orderA = (await pool.query<{ id: string; stripe_session_id: string }>(
+      "SELECT id, stripe_session_id FROM vatproof.orders WHERE public_token = $1",
+      [String(older.body.orderToken)],
+    )).rows[0]!;
+    unresolvableIntents.add(`pi_${orderA.id}`);
+    await webhookRoute.POST(webhookRequest(paidEvent("evt_orphan", orderA.id, orderA.stripe_session_id, 490)) as never);
+
+    const newer = await placeOrder(["IT00743110157"], "203.0.113.42", "healthy-fee-key");
+    const orderB = (await pool.query<{ id: string; stripe_session_id: string }>(
+      "SELECT id, stripe_session_id FROM vatproof.orders WHERE public_token = $1",
+      [String(newer.body.orderToken)],
+    )).rows[0]!;
+    await webhookRoute.POST(webhookRequest(paidEvent("evt_healthy", orderB.id, orderB.stripe_session_id, 490)) as never);
+    afterQueue.length = 0;
+
+    // Both are old enough for the fee sweep to chase them.
+    await pool.query("UPDATE vatproof.orders SET paid_at = now() - interval '1 hour'");
+
+    const res = await cronRoute.GET(
+      new Request("https://vatproof.test/api/cron/reconcile", {
+        headers: { authorization: "Bearer cron-secret-0123456789" },
+      }) as never,
+    );
+    expect(res.status).toBe(200);
+
+    const feeA = await pool.query("SELECT 1 FROM vatproof.ledger_entries WHERE order_id = $1 AND kind = 'stripe_fee'", [orderA.id]);
+    const feeB = await pool.query<{ amount_minor: number }>(
+      "SELECT amount_minor FROM vatproof.ledger_entries WHERE order_id = $1 AND kind = 'stripe_fee'",
+      [orderB.id],
+    );
+    // The orphan stays unbooked - inventing a zero would falsify the ledger.
+    expect(feeA.rowCount).toBe(0);
+    // The healthy order behind it still gets its true cost.
+    expect(feeB.rows[0]).toMatchObject({ amount_minor: -32 });
   });
 
   it("hands a previous list back so the same customer can re-run it", async () => {
