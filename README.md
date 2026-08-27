@@ -75,10 +75,11 @@ Five things bite on a fresh Vercel project, none of them code:
    Vercel Authentication, which 302-redirects every visitor to a Vercel login.
    A paying customer cannot reach checkout through that. Turn it off:
    Project → Settings → Deployment Protection → Vercel Authentication → Disabled.
-2. **The right URL.** The production URL is the one listed under Project →
-   Domains (`<project>-<account>.vercel.app`). A `*.vercel.app` name that is not
-   in that list belongs to some other project and will always answer
-   `404: NOT_FOUND` no matter how correct this repo is.
+2. **`404: NOT_FOUND` on the correct URL.** This means the deployment that
+   production currently points at does not contain the app — typically an
+   older commit, because a newer one failed or was blocked. The URL is not the
+   problem. Check which commit is serving production before touching any code:
+   Project → Deployments, and read the commit on the row marked *Production*.
 3. **Deployments in `BLOCKED` state.** A deployment created and "ready" in the
    same millisecond, with no build logs, was never built — that is an
    account-level block (Hobby free-tier deployment limits), not a build failure.
