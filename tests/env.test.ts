@@ -55,6 +55,22 @@ describe("environment validation", () => {
     });
   });
 
+  it("keeps the statement descriptor suffix inside Stripe's limits", () => {
+    withEnv(REQUIRED, () => {
+      expect(env().STRIPE_STATEMENT_SUFFIX).toBe("VIESPROOF");
+    });
+    withEnv({ ...REQUIRED, STRIPE_STATEMENT_SUFFIX: "WAY-TOO-LONG-SUFFIX" }, () => {
+      expect(() => env()).toThrow(/STRIPE_STATEMENT_SUFFIX/);
+    });
+    // Stripe rejects these characters outright.
+    withEnv({ ...REQUIRED, STRIPE_STATEMENT_SUFFIX: 'BAD"ONE' }, () => {
+      expect(() => env()).toThrow(/STRIPE_STATEMENT_SUFFIX/);
+    });
+    withEnv({ ...REQUIRED, STRIPE_STATEMENT_SUFFIX: "12345" }, () => {
+      expect(() => env()).toThrow(/at least one letter/);
+    });
+  });
+
   it("rejects a weak cron secret", () => {
     withEnv({ ...REQUIRED, CRON_SECRET: "short" }, () => {
       expect(() => env()).toThrow(/CRON_SECRET/);

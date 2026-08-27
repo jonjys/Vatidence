@@ -68,6 +68,10 @@ export async function createCheckoutSession(input: CheckoutInput): Promise<Strip
       payment_intent_data: {
         description: `VATProof order ${input.orderId}`,
         metadata: { order_id: input.orderId, public_token: input.publicToken },
+        // Without this the charge shows only the Stripe account's own name,
+        // which a customer who bought VAT evidence will not recognise weeks
+        // later. Unrecognised descriptors are what chargebacks are made of.
+        statement_descriptor_suffix: config.STRIPE_STATEMENT_SUFFIX,
       },
       ...(config.STRIPE_TAX_ENABLED
         ? { automatic_tax: { enabled: true }, tax_id_collection: { enabled: true } }
