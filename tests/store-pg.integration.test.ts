@@ -21,7 +21,14 @@ const url = process.env.TEST_DATABASE_URL;
 const store = new PgOrderStore();
 let pool: Pool;
 
-const TABLES = ["ledger_entries", "order_items", "orders", "webhook_events", "idempotency_keys", "rate_limits"];
+const TABLES = [
+  "vatproof.ledger_entries",
+  "vatproof.order_items",
+  "vatproof.orders",
+  "vatproof.webhook_events",
+  "vatproof.idempotency_keys",
+  "vatproof.rate_limits",
+];
 
 async function migrate(): Promise<void> {
   const dir = join(process.cwd(), "db", "migrations");
@@ -71,6 +78,32 @@ describe.skipIf(!url)("PgOrderStore against real Postgres", () => {
 
   beforeEach(async () => {
     await pool.query(`TRUNCATE ${TABLES.join(", ")} RESTART IDENTITY CASCADE`);
+  });
+
+  it("is unaffected by foreign tables of the same name in public", async () => {
+    // Production taught this: a Neon database shared with another application
+    // already had a `rate_limits` table, and CREATE TABLE IF NOT EXISTS
+    // silently adopted it. Owning a schema is what makes that impossible.
+    await pool.query("DROP TABLE IF EXISTS public.rate_limits, public.orders CASCADE");
+    await pool.query("CREATE TABLE public.rate_limits (something_else text primary key)");
+    await pool.query("CREATE TABLE public.orders (unrelated_id serial primary key, total numeric)");
+    try {
+      await migrate();
+
+      const verdict = await rateLimit("collision-bucket", 5, 60_000);
+      expect(verdict.allowed).toBe(true);
+
+      await seed(ORDER_ID, ["SE556036079301"], 490);
+      expect((await store.getOrderByToken(`tok-${ORDER_ID}`))?.amountTotal).toBe(490);
+
+      // The foreign tables are untouched.
+      const foreign = await pool.query<{ count: string }>(
+        "SELECT count(*)::text AS count FROM information_schema.columns WHERE table_schema='public' AND table_name='rate_limits' AND column_name='something_else'",
+      );
+      expect(foreign.rows[0]!.count).toBe("1");
+    } finally {
+      await pool.query("DROP TABLE IF EXISTS public.rate_limits, public.orders CASCADE");
+    }
   });
 
   it("stores an order and its rows, including batches larger than one insert chunk", async () => {
@@ -230,14 +263,14 @@ describe.skipIf(!url)("PgOrderStore against real Postgres", () => {
     expect(await store.beginWebhookEvent("evt_1", "checkout.session.completed")).toBe(true);
     expect(await store.beginWebhookEvent("evt_1", "checkout.session.completed")).toBe(false);
     await store.finishWebhookEvent("evt_1", null);
-    const row = await queryOne<{ processed_at: Date | null }>("SELECT processed_at FROM webhook_events WHERE event_id = $1", ["evt_1"]);
+    const row = await queryOne<{ processed_at: Date | null }>("SELECT processed_at FROM vatproof.webhook_events WHERE event_id = $1", ["evt_1"]);
     expect(row?.processed_at).toBeInstanceOf(Date);
   });
 
   it("purges identifying data after the retention window but keeps the ledger", async () => {
     await seed(ORDER_ID, ["SE556036079301"], 490);
     await store.recordLedger({ orderId: ORDER_ID, kind: "charge", amountMinor: 490, currency: "eur", reference: "pi_1", memo: "payment" });
-    await query("UPDATE orders SET purge_after = now() - interval '1 day' WHERE id = $1", [ORDER_ID]);
+    await query("UPDATE vatproof.orders SET purge_after = now() - interval '1 day' WHERE id = $1", [ORDER_ID]);
 
     expect(await store.purgeExpired(new Date(), 100)).toBe(1);
     const order = await store.getOrderById(ORDER_ID);
@@ -251,10 +284,10 @@ describe.skipIf(!url)("PgOrderStore against real Postgres", () => {
 
   it("keeps updated_at honest via the database trigger", async () => {
     await seed(ORDER_ID, ["SE556036079301"], 490);
-    const before = await queryOne<{ updated_at: Date }>("SELECT updated_at FROM orders WHERE id = $1", [ORDER_ID]);
+    const before = await queryOne<{ updated_at: Date }>("SELECT updated_at FROM vatproof.orders WHERE id = $1", [ORDER_ID]);
     await new Promise((r) => setTimeout(r, 15));
     await store.markPaid(ORDER_ID, { paymentIntentId: "pi_1", chargeId: "ch_1", amountTotalMinor: 490, currency: "eur" });
-    const after = await queryOne<{ updated_at: Date }>("SELECT updated_at FROM orders WHERE id = $1", [ORDER_ID]);
+    const after = await queryOne<{ updated_at: Date }>("SELECT updated_at FROM vatproof.orders WHERE id = $1", [ORDER_ID]);
     expect(after!.updated_at.getTime()).toBeGreaterThan(before!.updated_at.getTime());
   });
 

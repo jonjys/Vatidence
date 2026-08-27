@@ -1,7 +1,15 @@
 -- VATProof core schema.
 -- Money path: orders -> order_items -> ledger_entries. Everything else is plumbing.
+--
+-- Everything lives in a dedicated `vatproof` schema rather than `public`.
+-- Table names like "orders" and "rate_limits" are common enough that a database
+-- shared with another application will already have them, and
+-- CREATE TABLE IF NOT EXISTS would then silently adopt a foreign table with the
+-- wrong columns. Owning a schema makes that impossible.
 
-CREATE TABLE IF NOT EXISTS orders (
+CREATE SCHEMA IF NOT EXISTS vatproof;
+
+CREATE TABLE IF NOT EXISTS vatproof.orders (
   id                        uuid PRIMARY KEY,
   public_token              text NOT NULL UNIQUE,
   status                    text NOT NULL,
@@ -33,14 +41,14 @@ CREATE TABLE IF NOT EXISTS orders (
 );
 
 CREATE INDEX IF NOT EXISTS orders_status_next_attempt_idx
-  ON orders (status, next_attempt_at)
+  ON vatproof.orders (status, next_attempt_at)
   WHERE status IN ('paid', 'processing');
-CREATE INDEX IF NOT EXISTS orders_purge_idx ON orders (purge_after) WHERE purged_at IS NULL;
-CREATE INDEX IF NOT EXISTS orders_created_at_idx ON orders (created_at);
+CREATE INDEX IF NOT EXISTS orders_purge_idx ON vatproof.orders (purge_after) WHERE purged_at IS NULL;
+CREATE INDEX IF NOT EXISTS orders_created_at_idx ON vatproof.orders (created_at);
 
-CREATE TABLE IF NOT EXISTS order_items (
+CREATE TABLE IF NOT EXISTS vatproof.order_items (
   id                    uuid PRIMARY KEY,
-  order_id              uuid NOT NULL REFERENCES orders(id) ON DELETE CASCADE,
+  order_id              uuid NOT NULL REFERENCES vatproof.orders(id) ON DELETE CASCADE,
   position              integer NOT NULL,
   country_code          char(2) NOT NULL,
   vat_number            text NOT NULL,
@@ -61,12 +69,12 @@ CREATE TABLE IF NOT EXISTS order_items (
   UNIQUE (order_id, position)
 );
 
-CREATE INDEX IF NOT EXISTS order_items_order_status_idx ON order_items (order_id, status);
+CREATE INDEX IF NOT EXISTS order_items_order_status_idx ON vatproof.order_items (order_id, status);
 
 -- Append-only double-sided ledger. margin = SUM(amount_minor) over an order.
-CREATE TABLE IF NOT EXISTS ledger_entries (
+CREATE TABLE IF NOT EXISTS vatproof.ledger_entries (
   id            bigserial PRIMARY KEY,
-  order_id      uuid NOT NULL REFERENCES orders(id) ON DELETE CASCADE,
+  order_id      uuid NOT NULL REFERENCES vatproof.orders(id) ON DELETE CASCADE,
   kind          text NOT NULL,           -- charge | stripe_fee | refund | upstream_cost
   amount_minor  integer NOT NULL,        -- signed: revenue positive, cost/refund negative
   currency      char(3) NOT NULL DEFAULT 'eur',
@@ -76,10 +84,10 @@ CREATE TABLE IF NOT EXISTS ledger_entries (
   UNIQUE (order_id, kind, reference)
 );
 
-CREATE INDEX IF NOT EXISTS ledger_order_idx ON ledger_entries (order_id);
+CREATE INDEX IF NOT EXISTS ledger_order_idx ON vatproof.ledger_entries (order_id);
 
 -- Stripe webhook idempotency. One row per delivered event id.
-CREATE TABLE IF NOT EXISTS webhook_events (
+CREATE TABLE IF NOT EXISTS vatproof.webhook_events (
   event_id      text PRIMARY KEY,
   type          text NOT NULL,
   received_at   timestamptz NOT NULL DEFAULT now(),
@@ -88,20 +96,20 @@ CREATE TABLE IF NOT EXISTS webhook_events (
 );
 
 -- Order-creation idempotency (client supplied Idempotency-Key).
-CREATE TABLE IF NOT EXISTS idempotency_keys (
+CREATE TABLE IF NOT EXISTS vatproof.idempotency_keys (
   key           text PRIMARY KEY,
   request_hash  text NOT NULL,
-  order_id      uuid REFERENCES orders(id) ON DELETE CASCADE,
+  order_id      uuid REFERENCES vatproof.orders(id) ON DELETE CASCADE,
   response      jsonb,
   created_at    timestamptz NOT NULL DEFAULT now()
 );
 
 -- Fixed-window rate limiting without extra infrastructure.
-CREATE TABLE IF NOT EXISTS rate_limits (
+CREATE TABLE IF NOT EXISTS vatproof.rate_limits (
   bucket        text NOT NULL,
   window_start  timestamptz NOT NULL,
   hits          integer NOT NULL DEFAULT 0,
   PRIMARY KEY (bucket, window_start)
 );
 
-CREATE INDEX IF NOT EXISTS rate_limits_window_idx ON rate_limits (window_start);
+CREATE INDEX IF NOT EXISTS rate_limits_window_idx ON vatproof.rate_limits (window_start);

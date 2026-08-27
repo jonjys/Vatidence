@@ -12,14 +12,14 @@ export async function claimIdempotencyKey(
   requestHash: string,
 ): Promise<{ claimed: true } | { claimed: false; existing: StoredIdempotentResponse }> {
   const inserted = await queryOne<{ key: string }>(
-    `INSERT INTO idempotency_keys (key, request_hash) VALUES ($1, $2)
+    `INSERT INTO vatproof.idempotency_keys (key, request_hash) VALUES ($1, $2)
      ON CONFLICT (key) DO NOTHING RETURNING key`,
     [key, requestHash],
   );
   if (inserted) return { claimed: true };
 
   const existing = await queryOne<{ order_id: string | null; response: unknown; request_hash: string }>(
-    `SELECT order_id, response, request_hash FROM idempotency_keys WHERE key = $1`,
+    `SELECT order_id, response, request_hash FROM vatproof.idempotency_keys WHERE key = $1`,
     [key],
   );
   return {
@@ -33,7 +33,7 @@ export async function claimIdempotencyKey(
 }
 
 export async function completeIdempotencyKey(key: string, orderId: string, response: unknown): Promise<void> {
-  await query(`UPDATE idempotency_keys SET order_id = $2, response = $3 WHERE key = $1`, [
+  await query(`UPDATE vatproof.idempotency_keys SET order_id = $2, response = $3 WHERE key = $1`, [
     key,
     orderId,
     JSON.stringify(response),
@@ -41,5 +41,5 @@ export async function completeIdempotencyKey(key: string, orderId: string, respo
 }
 
 export async function releaseIdempotencyKey(key: string): Promise<void> {
-  await query(`DELETE FROM idempotency_keys WHERE key = $1 AND order_id IS NULL`, [key]);
+  await query(`DELETE FROM vatproof.idempotency_keys WHERE key = $1 AND order_id IS NULL`, [key]);
 }

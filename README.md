@@ -231,6 +231,12 @@ delivered order.
 
 ## Operating notes
 
+- **Its own schema.** Every table lives in the `vatproof` schema, not `public`.
+  If you point `DATABASE_URL` at a database another application already uses,
+  nothing collides — and `CREATE TABLE IF NOT EXISTS` cannot silently adopt a
+  foreign table that happens to be called `orders` or `rate_limits`. If an
+  earlier deploy of this app created tables in `public`, they are orphaned and
+  safe to drop once you have checked nothing else owns them.
 - **Data retention.** `DATA_RETENTION_DAYS` (default 90) after an order is
   placed, VAT numbers and trader details are erased by the cron sweep and the
   results stop being retrievable. Ledger rows survive, without identifying data.

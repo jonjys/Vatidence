@@ -93,7 +93,14 @@ let pdfRoute: typeof import("@/app/api/orders/[token]/evidence.pdf/route");
 let cronRoute: typeof import("@/app/api/cron/reconcile/route");
 let db: typeof import("@/lib/db");
 
-const TABLES = ["ledger_entries", "order_items", "orders", "webhook_events", "idempotency_keys", "rate_limits"];
+const TABLES = [
+  "vatproof.ledger_entries",
+  "vatproof.order_items",
+  "vatproof.orders",
+  "vatproof.webhook_events",
+  "vatproof.idempotency_keys",
+  "vatproof.rate_limits",
+];
 
 function orderRequest(body: unknown, ip: string): Request {
   return new Request("https://vatproof.test/api/orders", {
@@ -181,16 +188,16 @@ describe.skipIf(!url)("HTTP money path", () => {
     expect(body.itemCount).toBe(2);
     expect(String(body.checkoutUrl)).toContain("checkout.stripe.test");
 
-    const rows = await pool.query("SELECT status, amount_total FROM orders");
+    const rows = await pool.query("SELECT status, amount_total FROM vatproof.orders");
     expect(rows.rows[0]).toMatchObject({ status: "awaiting_payment", amount_total: 490 });
-    expect((await pool.query("SELECT * FROM ledger_entries")).rowCount).toBe(0);
+    expect((await pool.query("SELECT * FROM vatproof.ledger_entries")).rowCount).toBe(0);
   });
 
   it("refuses a malformed VAT number instead of charging for it", async () => {
     const { res, body } = await placeOrder(["SE556036079301", "not-a-vat"]);
     expect(res.status).toBe(400);
     expect(String(body.message)).toContain("not-a-vat");
-    expect((await pool.query("SELECT * FROM orders")).rowCount).toBe(0);
+    expect((await pool.query("SELECT * FROM vatproof.orders")).rowCount).toBe(0);
   });
 
   it("requires the requester's own VAT number, because it is what buys the evidence", async () => {
@@ -207,7 +214,7 @@ describe.skipIf(!url)("HTTP money path", () => {
     expect(first.res.status).toBe(201);
     expect(second.res.status).toBe(200);
     expect(second.body.orderToken).toBe(first.body.orderToken);
-    expect((await pool.query("SELECT * FROM orders")).rowCount).toBe(1);
+    expect((await pool.query("SELECT * FROM vatproof.orders")).rowCount).toBe(1);
   });
 
   it("rejects an idempotency key reused for different contents", async () => {
@@ -230,7 +237,7 @@ describe.skipIf(!url)("HTTP money path", () => {
       webhookRequest(paidEvent("evt_bad", "o", "cs", 490), { secret: "whsec_wrong" }) as never,
     );
     expect(res.status).toBe(400);
-    expect((await pool.query("SELECT * FROM webhook_events")).rowCount).toBe(0);
+    expect((await pool.query("SELECT * FROM vatproof.webhook_events")).rowCount).toBe(0);
   });
 
   it("carries an order from payment to delivered evidence with no human involved", async () => {
@@ -243,23 +250,23 @@ describe.skipIf(!url)("HTTP money path", () => {
       "end-to-end-key",
     );
     const token = String(body.orderToken);
-    const order = (await pool.query<{ id: string; stripe_session_id: string }>("SELECT id, stripe_session_id FROM orders")).rows[0]!;
+    const order = (await pool.query<{ id: string; stripe_session_id: string }>("SELECT id, stripe_session_id FROM vatproof.orders")).rows[0]!;
 
     // 1. Stripe confirms payment.
     const webhookRes = await webhookRoute.POST(
       webhookRequest(paidEvent("evt_paid", order.id, order.stripe_session_id, 490)) as never,
     );
     expect(webhookRes.status).toBe(200);
-    expect((await pool.query("SELECT status FROM orders")).rows[0]).toMatchObject({ status: "paid" });
+    expect((await pool.query("SELECT status FROM vatproof.orders")).rows[0]).toMatchObject({ status: "paid" });
     expect(
-      (await pool.query("SELECT amount_minor FROM ledger_entries WHERE kind = 'charge'")).rows[0],
+      (await pool.query("SELECT amount_minor FROM vatproof.ledger_entries WHERE kind = 'charge'")).rows[0],
     ).toMatchObject({ amount_minor: 490 });
 
     // 2. Fulfillment runs in the background work Next would schedule after the 200.
     await flushAfter();
 
     // 3. One row was unanswerable, so a pro-rata refund was issued automatically.
-    const settled = (await pool.query<{ status: string; amount_refunded: number }>("SELECT status, amount_refunded FROM orders")).rows[0]!;
+    const settled = (await pool.query<{ status: string; amount_refunded: number }>("SELECT status, amount_refunded FROM vatproof.orders")).rows[0]!;
     expect(settled.status).toBe("partially_refunded");
     expect(settled.amount_refunded).toBe(123);
     expect(refundCalls).toHaveLength(1);
@@ -291,14 +298,14 @@ describe.skipIf(!url)("HTTP money path", () => {
       webhookRequest(paidEvent("evt_paid", order.id, order.stripe_session_id, 490)) as never,
     );
     expect((await replay.json()) as Record<string, unknown>).toMatchObject({ duplicate: true });
-    expect((await pool.query("SELECT * FROM ledger_entries WHERE kind = 'charge'")).rowCount).toBe(1);
+    expect((await pool.query("SELECT * FROM vatproof.ledger_entries WHERE kind = 'charge'")).rowCount).toBe(1);
     expect(refundCalls).toHaveLength(1);
   });
 
   it("books the Stripe fee so the ledger shows real margin", async () => {
     const { body } = await placeOrder(["SE556036079301"], "203.0.113.21", "stripe-fee-key");
     expect(body.orderToken).toBeTruthy();
-    const order = (await pool.query<{ id: string; stripe_session_id: string }>("SELECT id, stripe_session_id FROM orders")).rows[0]!;
+    const order = (await pool.query<{ id: string; stripe_session_id: string }>("SELECT id, stripe_session_id FROM vatproof.orders")).rows[0]!;
 
     await webhookRoute.POST(webhookRequest(paidEvent("evt_paid_2", order.id, order.stripe_session_id, 490)) as never);
     await webhookRoute.POST(
@@ -311,14 +318,14 @@ describe.skipIf(!url)("HTTP money path", () => {
     );
     await flushAfter();
 
-    const total = await pool.query<{ sum: string }>("SELECT COALESCE(SUM(amount_minor), 0)::text AS sum FROM ledger_entries");
+    const total = await pool.query<{ sum: string }>("SELECT COALESCE(SUM(amount_minor), 0)::text AS sum FROM vatproof.ledger_entries");
     expect(Number(total.rows[0]!.sum)).toBe(490 - 32);
   });
 
   it("books the fee even when Stripe sends a charge without our metadata", async () => {
     const { body } = await placeOrder(["SE556036079301"], "203.0.113.25", "no-metadata-key");
     expect(body.orderToken).toBeTruthy();
-    const order = (await pool.query<{ id: string; stripe_session_id: string }>("SELECT id, stripe_session_id FROM orders")).rows[0]!;
+    const order = (await pool.query<{ id: string; stripe_session_id: string }>("SELECT id, stripe_session_id FROM vatproof.orders")).rows[0]!;
 
     await webhookRoute.POST(webhookRequest(paidEvent("evt_paid_4", order.id, order.stripe_session_id, 490)) as never);
     await webhookRoute.POST(
@@ -332,7 +339,7 @@ describe.skipIf(!url)("HTTP money path", () => {
     );
     await flushAfter();
 
-    const fee = await pool.query("SELECT amount_minor FROM ledger_entries WHERE kind = 'stripe_fee'");
+    const fee = await pool.query("SELECT amount_minor FROM vatproof.ledger_entries WHERE kind = 'stripe_fee'");
     expect(fee.rows[0]).toMatchObject({ amount_minor: -32 });
   });
 
@@ -386,7 +393,7 @@ describe.skipIf(!url)("HTTP money path", () => {
   it("guards the cron endpoint and completes work the webhook never finished", async () => {
     const { body } = await placeOrder(["SE556036079301", "IT00743110157"], "203.0.113.23", "cron-key");
     const token = String(body.orderToken);
-    const order = (await pool.query<{ id: string; stripe_session_id: string }>("SELECT id, stripe_session_id FROM orders")).rows[0]!;
+    const order = (await pool.query<{ id: string; stripe_session_id: string }>("SELECT id, stripe_session_id FROM vatproof.orders")).rows[0]!;
 
     await webhookRoute.POST(webhookRequest(paidEvent("evt_paid_3", order.id, order.stripe_session_id, 490)) as never);
     afterQueue.length = 0; // simulate the background pass never running
@@ -410,7 +417,7 @@ describe.skipIf(!url)("HTTP money path", () => {
 
   it("expires an abandoned checkout when Stripe says the session lapsed", async () => {
     await placeOrder(["SE556036079301"], "203.0.113.24", "expire-key");
-    const order = (await pool.query<{ stripe_session_id: string }>("SELECT stripe_session_id FROM orders")).rows[0]!;
+    const order = (await pool.query<{ stripe_session_id: string }>("SELECT stripe_session_id FROM vatproof.orders")).rows[0]!;
 
     const res = await webhookRoute.POST(
       webhookRequest({
@@ -421,6 +428,6 @@ describe.skipIf(!url)("HTTP money path", () => {
       }) as never,
     );
     expect(res.status).toBe(200);
-    expect((await pool.query("SELECT status FROM orders")).rows[0]).toMatchObject({ status: "expired" });
+    expect((await pool.query("SELECT status FROM vatproof.orders")).rows[0]).toMatchObject({ status: "expired" });
   });
 });

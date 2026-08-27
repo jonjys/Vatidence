@@ -11,7 +11,7 @@ export async function rateLimit(bucket: string, limit: number, windowMs: number)
   const now = Date.now();
   const windowStart = new Date(Math.floor(now / windowMs) * windowMs);
   const row = await queryOne<{ hits: number }>(
-    `INSERT INTO rate_limits (bucket, window_start, hits) VALUES ($1, $2, 1)
+    `INSERT INTO vatproof.rate_limits (bucket, window_start, hits) VALUES ($1, $2, 1)
      ON CONFLICT (bucket, window_start) DO UPDATE SET hits = rate_limits.hits + 1
      RETURNING hits`,
     [bucket, windowStart],
@@ -25,5 +25,5 @@ export async function rateLimit(bucket: string, limit: number, windowMs: number)
 }
 
 export async function pruneRateLimits(olderThan: Date): Promise<void> {
-  await query(`DELETE FROM rate_limits WHERE window_start < $1`, [olderThan]);
+  await query(`DELETE FROM vatproof.rate_limits WHERE window_start < $1`, [olderThan]);
 }

@@ -53,7 +53,7 @@ async function main(): Promise<void> {
     )`);
 
     const applied = new Map<string, string>(
-      (await client.query<{ name: string; checksum: string }>("SELECT name, checksum FROM schema_migrations")).rows.map(
+      (await client.query<{ name: string; checksum: string }>("SELECT name, checksum FROM vatproof.schema_migrations")).rows.map(
         (r) => [r.name, r.checksum],
       ),
     );
@@ -77,7 +77,7 @@ async function main(): Promise<void> {
       await client.query("BEGIN");
       try {
         await client.query(sql);
-        await client.query("INSERT INTO schema_migrations (name, checksum) VALUES ($1, $2)", [file, checksum]);
+        await client.query("INSERT INTO vatproof.schema_migrations (name, checksum) VALUES ($1, $2)", [file, checksum]);
         await client.query("COMMIT");
         ran++;
         process.stdout.write("ok\n");

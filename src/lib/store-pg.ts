@@ -98,7 +98,7 @@ export class PgOrderStore implements OrderStore {
   async createOrder(order: NewOrder, items: NewOrderItem[]): Promise<void> {
     await withTransaction(async (client) => {
       await client.query(
-        `INSERT INTO orders (id, public_token, status, requester_country, requester_vat, item_count,
+        `INSERT INTO vatproof.orders (id, public_token, status, requester_country, requester_vat, item_count,
            currency, amount_total, purge_after, client_ip_hash)
          VALUES ($1, $2, 'awaiting_payment', $3, $4, $5, $6, $7, $8, $9)`,
         [
@@ -125,7 +125,7 @@ export class PgOrderStore implements OrderStore {
           return `($${base + 1}, $${base + 2}, $${base + 3}, $${base + 4}, $${base + 5})`;
         });
         await client.query(
-          `INSERT INTO order_items (id, order_id, position, country_code, vat_number) VALUES ${tuples.join(", ")}`,
+          `INSERT INTO vatproof.order_items (id, order_id, position, country_code, vat_number) VALUES ${tuples.join(", ")}`,
           values,
         );
       }
@@ -133,34 +133,34 @@ export class PgOrderStore implements OrderStore {
   }
 
   async getOrderById(id: string): Promise<Order | null> {
-    const row = await queryOne<OrderRow>(`SELECT ${ORDER_COLUMNS} FROM orders WHERE id = $1`, [id]);
+    const row = await queryOne<OrderRow>(`SELECT ${ORDER_COLUMNS} FROM vatproof.orders WHERE id = $1`, [id]);
     return row ? toOrder(row) : null;
   }
 
   async getOrderByToken(token: string): Promise<Order | null> {
-    const row = await queryOne<OrderRow>(`SELECT ${ORDER_COLUMNS} FROM orders WHERE public_token = $1`, [token]);
+    const row = await queryOne<OrderRow>(`SELECT ${ORDER_COLUMNS} FROM vatproof.orders WHERE public_token = $1`, [token]);
     return row ? toOrder(row) : null;
   }
 
   async getOrderBySessionId(sessionId: string): Promise<Order | null> {
-    const row = await queryOne<OrderRow>(`SELECT ${ORDER_COLUMNS} FROM orders WHERE stripe_session_id = $1`, [sessionId]);
+    const row = await queryOne<OrderRow>(`SELECT ${ORDER_COLUMNS} FROM vatproof.orders WHERE stripe_session_id = $1`, [sessionId]);
     return row ? toOrder(row) : null;
   }
 
   async getOrderByPaymentIntent(paymentIntentId: string): Promise<Order | null> {
     const row = await queryOne<OrderRow>(
-      `SELECT ${ORDER_COLUMNS} FROM orders WHERE stripe_payment_intent_id = $1`,
+      `SELECT ${ORDER_COLUMNS} FROM vatproof.orders WHERE stripe_payment_intent_id = $1`,
       [paymentIntentId],
     );
     return row ? toOrder(row) : null;
   }
 
   async attachCheckoutSession(orderId: string, sessionId: string): Promise<void> {
-    await query(`UPDATE orders SET stripe_session_id = $2 WHERE id = $1`, [orderId, sessionId]);
+    await query(`UPDATE vatproof.orders SET stripe_session_id = $2 WHERE id = $1`, [orderId, sessionId]);
   }
 
   async listItems(orderId: string): Promise<OrderItem[]> {
-    const rows = await query<ItemRow>(`SELECT * FROM order_items WHERE order_id = $1 ORDER BY position ASC`, [orderId]);
+    const rows = await query<ItemRow>(`SELECT * FROM vatproof.order_items WHERE order_id = $1 ORDER BY position ASC`, [orderId]);
     return rows.map(toItem);
   }
 
@@ -171,7 +171,7 @@ export class PgOrderStore implements OrderStore {
               COUNT(*) FILTER (WHERE status = 'valid')::text AS valid,
               COUNT(*) FILTER (WHERE status = 'invalid')::text AS invalid,
               COUNT(*) FILTER (WHERE status = 'failed_permanent')::text AS failed
-       FROM order_items WHERE order_id = $1`,
+       FROM vatproof.order_items WHERE order_id = $1`,
       [orderId],
     );
     return {
@@ -185,7 +185,7 @@ export class PgOrderStore implements OrderStore {
 
   async claimDueItems(orderId: string, limit: number): Promise<OrderItem[]> {
     const rows = await query<ItemRow>(
-      `SELECT * FROM order_items
+      `SELECT * FROM vatproof.order_items
        WHERE order_id = $1 AND status = 'pending'
          AND (next_attempt_at IS NULL OR next_attempt_at <= now())
        ORDER BY position ASC LIMIT $2`,
@@ -197,7 +197,7 @@ export class PgOrderStore implements OrderStore {
   async applyResolution(itemId: string, resolution: ItemResolution): Promise<void> {
     if (resolution.kind === "answered") {
       await query(
-        `UPDATE order_items
+        `UPDATE vatproof.order_items
          SET status = $2, attempts = attempts + 1, vies_valid = $3, vies_request_id = $4,
              vies_request_date = $5, vies_name = $6, vies_address = $7, checked_at = now(),
              last_error = NULL, next_attempt_at = NULL
@@ -216,14 +216,14 @@ export class PgOrderStore implements OrderStore {
     }
     if (resolution.kind === "retry") {
       await query(
-        `UPDATE order_items SET attempts = attempts + 1, last_error = $2, next_attempt_at = $3
+        `UPDATE vatproof.order_items SET attempts = attempts + 1, last_error = $2, next_attempt_at = $3
          WHERE id = $1 AND status = 'pending'`,
         [itemId, resolution.error.slice(0, 500), resolution.nextAttemptAt],
       );
       return;
     }
     await query(
-      `UPDATE order_items SET status = 'failed_permanent', attempts = attempts + 1,
+      `UPDATE vatproof.order_items SET status = 'failed_permanent', attempts = attempts + 1,
              last_error = $2, next_attempt_at = NULL, checked_at = now()
        WHERE id = $1 AND status = 'pending'`,
       [itemId, resolution.error.slice(0, 500)],
@@ -231,12 +231,12 @@ export class PgOrderStore implements OrderStore {
   }
 
   async markItemsRefunded(orderId: string): Promise<void> {
-    await query(`UPDATE order_items SET refunded = true WHERE order_id = $1 AND status = 'failed_permanent'`, [orderId]);
+    await query(`UPDATE vatproof.order_items SET refunded = true WHERE order_id = $1 AND status = 'failed_permanent'`, [orderId]);
   }
 
   async markPaid(orderId: string, facts: PaymentFacts): Promise<boolean> {
     const row = await queryOne<{ id: string }>(
-      `UPDATE orders
+      `UPDATE vatproof.orders
        SET status = 'paid', paid_at = now(), next_attempt_at = now(),
            stripe_payment_intent_id = COALESCE($2, stripe_payment_intent_id),
            stripe_charge_id = COALESCE($3, stripe_charge_id)
@@ -247,7 +247,7 @@ export class PgOrderStore implements OrderStore {
     if (row) return true;
     // Late-arriving charge facts on an order already marked paid.
     await query(
-      `UPDATE orders
+      `UPDATE vatproof.orders
        SET stripe_payment_intent_id = COALESCE(stripe_payment_intent_id, $2),
            stripe_charge_id = COALESCE(stripe_charge_id, $3)
        WHERE id = $1`,
@@ -264,7 +264,7 @@ export class PgOrderStore implements OrderStore {
   ): Promise<boolean> {
     for (const f of from) assertTransition(f, to);
     const row = await queryOne<{ id: string }>(
-      `UPDATE orders
+      `UPDATE vatproof.orders
        SET status = $3,
            last_error = COALESCE($4, last_error),
            completed_at = CASE WHEN $5 THEN now() ELSE completed_at END
@@ -278,15 +278,15 @@ export class PgOrderStore implements OrderStore {
   async recordRefund(orderId: string, amountMinor: number, refundId: string): Promise<boolean> {
     return withTransaction(async (client) => {
       const inserted = await client.query(
-        `INSERT INTO ledger_entries (order_id, kind, amount_minor, currency, reference, memo)
-         SELECT $1, 'refund', $2, currency, $3, 'automatic refund for unanswerable rows' FROM orders WHERE id = $1
+        `INSERT INTO vatproof.ledger_entries (order_id, kind, amount_minor, currency, reference, memo)
+         SELECT $1, 'refund', $2, currency, $3, 'automatic refund for unanswerable rows' FROM vatproof.orders WHERE id = $1
          ON CONFLICT (order_id, kind, reference) DO NOTHING
          RETURNING id`,
         [orderId, -Math.abs(amountMinor), refundId],
       );
       if (inserted.rowCount === 0) return false;
       await client.query(
-        `UPDATE orders SET amount_refunded = LEAST(amount_total, amount_refunded + $2) WHERE id = $1`,
+        `UPDATE vatproof.orders SET amount_refunded = LEAST(amount_total, amount_refunded + $2) WHERE id = $1`,
         [orderId, Math.abs(amountMinor)],
       );
       return true;
@@ -295,7 +295,7 @@ export class PgOrderStore implements OrderStore {
 
   async recordLedger(entry: LedgerEntry): Promise<void> {
     await query(
-      `INSERT INTO ledger_entries (order_id, kind, amount_minor, currency, reference, memo)
+      `INSERT INTO vatproof.ledger_entries (order_id, kind, amount_minor, currency, reference, memo)
        VALUES ($1, $2, $3, $4, $5, $6)
        ON CONFLICT (order_id, kind, reference) DO NOTHING`,
       [entry.orderId, entry.kind, entry.amountMinor, entry.currency, entry.reference, entry.memo],
@@ -310,7 +310,7 @@ export class PgOrderStore implements OrderStore {
       currency: string;
       reference: string | null;
       memo: string | null;
-    }>(`SELECT order_id, kind, amount_minor, currency, reference, memo FROM ledger_entries WHERE order_id = $1 ORDER BY id ASC`, [
+    }>(`SELECT order_id, kind, amount_minor, currency, reference, memo FROM vatproof.ledger_entries WHERE order_id = $1 ORDER BY id ASC`, [
       orderId,
     ]);
     return rows.map((r) => ({
@@ -325,7 +325,7 @@ export class PgOrderStore implements OrderStore {
 
   async acquireFulfillmentLock(orderId: string, leaseMs: number): Promise<boolean> {
     const row = await queryOne<{ id: string }>(
-      `UPDATE orders SET fulfillment_locked_until = now() + ($2::int * interval '1 millisecond')
+      `UPDATE vatproof.orders SET fulfillment_locked_until = now() + ($2::int * interval '1 millisecond')
        WHERE id = $1 AND (fulfillment_locked_until IS NULL OR fulfillment_locked_until < now())
        RETURNING id`,
       [orderId, leaseMs],
@@ -334,11 +334,11 @@ export class PgOrderStore implements OrderStore {
   }
 
   async releaseFulfillmentLock(orderId: string): Promise<void> {
-    await query(`UPDATE orders SET fulfillment_locked_until = NULL WHERE id = $1`, [orderId]);
+    await query(`UPDATE vatproof.orders SET fulfillment_locked_until = NULL WHERE id = $1`, [orderId]);
   }
 
   async bumpOrderAttempt(orderId: string, nextAttemptAt: Date | null, lastError: string | null): Promise<void> {
-    await query(`UPDATE orders SET attempts = attempts + 1, next_attempt_at = $2, last_error = $3 WHERE id = $1`, [
+    await query(`UPDATE vatproof.orders SET attempts = attempts + 1, next_attempt_at = $2, last_error = $3 WHERE id = $1`, [
       orderId,
       nextAttemptAt,
       lastError ? lastError.slice(0, 500) : null,
@@ -347,7 +347,7 @@ export class PgOrderStore implements OrderStore {
 
   async findDueOrders(limit: number): Promise<Order[]> {
     const rows = await query<OrderRow>(
-      `SELECT ${ORDER_COLUMNS} FROM orders
+      `SELECT ${ORDER_COLUMNS} FROM vatproof.orders
        WHERE status IN ('paid', 'processing')
          AND (next_attempt_at IS NULL OR next_attempt_at <= now())
          AND (fulfillment_locked_until IS NULL OR fulfillment_locked_until < now())
@@ -359,9 +359,9 @@ export class PgOrderStore implements OrderStore {
 
   async expireStaleOrders(olderThan: Date, limit: number): Promise<number> {
     const rows = await query<{ id: string }>(
-      `UPDATE orders SET status = 'expired', completed_at = now()
+      `UPDATE vatproof.orders SET status = 'expired', completed_at = now()
        WHERE id IN (
-         SELECT id FROM orders WHERE status = 'awaiting_payment' AND created_at < $1 ORDER BY created_at ASC LIMIT $2
+         SELECT id FROM vatproof.orders WHERE status = 'awaiting_payment' AND created_at < $1 ORDER BY created_at ASC LIMIT $2
        )
        RETURNING id`,
       [olderThan, limit],
@@ -371,7 +371,7 @@ export class PgOrderStore implements OrderStore {
 
   async beginWebhookEvent(eventId: string, type: string): Promise<boolean> {
     const row = await queryOne<{ event_id: string }>(
-      `INSERT INTO webhook_events (event_id, type) VALUES ($1, $2)
+      `INSERT INTO vatproof.webhook_events (event_id, type) VALUES ($1, $2)
        ON CONFLICT (event_id) DO NOTHING RETURNING event_id`,
       [eventId, type],
     );
@@ -379,7 +379,7 @@ export class PgOrderStore implements OrderStore {
   }
 
   async finishWebhookEvent(eventId: string, error?: string | null): Promise<void> {
-    await query(`UPDATE webhook_events SET processed_at = now(), error = $2 WHERE event_id = $1`, [
+    await query(`UPDATE vatproof.webhook_events SET processed_at = now(), error = $2 WHERE event_id = $1`, [
       eventId,
       error ? error.slice(0, 1000) : null,
     ]);
@@ -387,7 +387,7 @@ export class PgOrderStore implements OrderStore {
 
   async purgeExpired(now: Date, limit: number): Promise<number> {
     const ids = await query<{ id: string }>(
-      `SELECT id FROM orders WHERE purged_at IS NULL AND purge_after < $1 ORDER BY purge_after ASC LIMIT $2`,
+      `SELECT id FROM vatproof.orders WHERE purged_at IS NULL AND purge_after < $1 ORDER BY purge_after ASC LIMIT $2`,
       [now, limit],
     );
     if (ids.length === 0) return 0;
@@ -395,12 +395,12 @@ export class PgOrderStore implements OrderStore {
     await withTransaction(async (client) => {
       // Keep the ledger and the audit skeleton; drop everything identifying.
       await client.query(
-        `UPDATE order_items SET vat_number = '(purged)', vies_name = NULL, vies_address = NULL
+        `UPDATE vatproof.order_items SET vat_number = '(purged)', vies_name = NULL, vies_address = NULL
          WHERE order_id = ANY($1::uuid[])`,
         [list],
       );
       await client.query(
-        `UPDATE orders SET requester_vat = '(purged)', client_ip_hash = NULL, purged_at = now()
+        `UPDATE vatproof.orders SET requester_vat = '(purged)', client_ip_hash = NULL, purged_at = now()
          WHERE id = ANY($1::uuid[])`,
         [list],
       );
