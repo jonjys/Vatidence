@@ -36,14 +36,7 @@ the whole asymmetry the business sits on.
 1. **Create a Neon database.** [neon.tech](https://neon.tech) → new project →
    copy the **pooled** connection string (the host contains `-pooler`).
 
-2. **Apply the schema.**
-   ```bash
-   npm install
-   DATABASE_URL="postgres://…" npm run migrate
-   ```
-   Safe to re-run; migrations are checksummed and applied once.
-
-3. **Deploy.**
+2. **Deploy.**
    ```bash
    vercel --prod
    ```
@@ -51,7 +44,14 @@ the whole asymmetry the business sits on.
    Vercel project (all of the "Required" block). `APP_URL` must be the final
    production URL.
 
-4. **Create the Stripe webhook.** Stripe Dashboard → Developers → Webhooks →
+   The schema applies itself: `npm run build` runs the migration runner before
+   `next build`, so every deploy that has `DATABASE_URL` configured migrates
+   first and a deploy that cannot migrate fails instead of shipping. Concurrent
+   deploys serialise on a Postgres advisory lock. Nothing to run by hand — and
+   `npm run migrate` is still there if you want to apply migrations without
+   deploying.
+
+3. **Create the Stripe webhook.** Stripe Dashboard → Developers → Webhooks →
    Add endpoint → `https://YOUR-DOMAIN/api/stripe/webhook`, subscribed to:
    ```
    checkout.session.completed
@@ -62,9 +62,9 @@ the whole asymmetry the business sits on.
    ```
    Copy the signing secret into `STRIPE_WEBHOOK_SECRET` and redeploy.
 
-5. **Check it is alive.** `curl https://YOUR-DOMAIN/api/health` → `{"ok":true,…}`.
+4. **Check it is alive.** `curl https://YOUR-DOMAIN/api/health` → `{"ok":true,…}`.
 
-There is no step 6. The cron entry in `vercel.json` is created by the deploy, and
+There is no step 5. The cron entry in `vercel.json` is created by the deploy, and
 no external API account is needed — VIES requires no key and no registration.
 
 ### First-deploy traps
@@ -202,7 +202,7 @@ npm install
 npm run lint        # eslint, zero warnings
 npm run typecheck   # tsc --noEmit, strict + noUncheckedIndexedAccess
 npm test            # 83 tests with no external dependencies
-npm run build       # next build
+npm run build       # migrations (skipped without DATABASE_URL) + next build
 npm run verify      # all of the above
 ```
 

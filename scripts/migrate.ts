@@ -3,6 +3,12 @@
  * inside a transaction, recording each in schema_migrations.
  *
  *   DATABASE_URL=postgres://... npm run migrate
+ *
+ * `npm run build` invokes this with --optional, so a deploy that has
+ * DATABASE_URL configured migrates itself and there is no manual step. Without
+ * DATABASE_URL (local builds, CI) it skips instead of failing. A misconfigured
+ * or unreachable database is still a hard failure - a deploy that cannot
+ * migrate must not ship.
  */
 import { readFileSync, readdirSync } from "node:fs";
 import { createHash } from "node:crypto";
@@ -11,9 +17,17 @@ import pg from "pg";
 
 const DIR = join(process.cwd(), "db", "migrations");
 
+/** Session-level lock key, so concurrent deploys serialise instead of racing. */
+const LOCK_KEY = 8_241_773;
+
 async function main(): Promise<void> {
+  const optional = process.argv.includes("--optional");
   const connectionString = process.env.DATABASE_URL;
   if (!connectionString) {
+    if (optional) {
+      console.log("DATABASE_URL is not set - skipping migrations.");
+      return;
+    }
     console.error("DATABASE_URL is not set. Copy .env.example to .env and fill it in.");
     process.exit(1);
   }
@@ -29,6 +43,9 @@ async function main(): Promise<void> {
   const client = await pool.connect();
 
   try {
+    // Two deploys building at once must not both try to apply the same file.
+    await client.query("SELECT pg_advisory_lock($1)", [LOCK_KEY]);
+
     await client.query(`CREATE TABLE IF NOT EXISTS schema_migrations (
       name text PRIMARY KEY,
       checksum text NOT NULL,
@@ -73,6 +90,11 @@ async function main(): Promise<void> {
 
     console.log(ran === 0 ? "Database already up to date." : `Applied ${ran} migration(s).`);
   } finally {
+    try {
+      await client.query("SELECT pg_advisory_unlock($1)", [LOCK_KEY]);
+    } catch {
+      // The session is gone; Postgres releases the lock with it.
+    }
     client.release();
     await pool.end();
   }
