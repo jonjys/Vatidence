@@ -9,7 +9,12 @@ const schema = z.object({
   DATABASE_URL: z.string().min(1, "DATABASE_URL is required (Neon pooled connection string)"),
   STRIPE_SECRET_KEY: z.string().min(1, "STRIPE_SECRET_KEY is required"),
   STRIPE_WEBHOOK_SECRET: z.string().min(1, "STRIPE_WEBHOOK_SECRET is required"),
-  APP_URL: z.string().url("APP_URL must be an absolute URL, e.g. https://vatproof.example"),
+  // Trailing slashes are stripped: this value is concatenated with paths, and
+  // "https://example.com/" would otherwise yield "https://example.com//r/token".
+  APP_URL: z
+    .string()
+    .url("APP_URL must be an absolute URL, e.g. https://vatproof.example")
+    .transform((v) => v.replace(/\/+$/, "")),
   CRON_SECRET: z.string().min(16, "CRON_SECRET must be at least 16 characters"),
 
   // Optional knobs, all with production-safe defaults.

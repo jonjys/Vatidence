@@ -37,6 +37,18 @@ describe("environment validation", () => {
     });
   });
 
+  it("strips a trailing slash from APP_URL so generated URLs never double up", () => {
+    withEnv({ ...REQUIRED, APP_URL: "https://viesproof.eu/" }, () => {
+      expect(env().APP_URL).toBe("https://viesproof.eu");
+    });
+    withEnv({ ...REQUIRED, APP_URL: "https://viesproof.eu///" }, () => {
+      expect(env().APP_URL).toBe("https://viesproof.eu");
+    });
+    withEnv({ ...REQUIRED, APP_URL: "https://viesproof.eu" }, () => {
+      expect(env().APP_URL).toBe("https://viesproof.eu");
+    });
+  });
+
   it("rejects a relative APP_URL, which would break Stripe redirects", () => {
     withEnv({ ...REQUIRED, APP_URL: "/app" }, () => {
       expect(() => env()).toThrow(/APP_URL/);
