@@ -110,6 +110,11 @@ export function ResultLive({ token, initial }: { token: string; initial: StatusP
             Retrievable from this URL until {new Date(state.retrievableUntil).toISOString().slice(0, 10)}, after which
             the underlying records are erased.
           </p>
+          <p className="hint">
+            A consultation number evidences the day it was issued, and registrations are withdrawn between periods.{" "}
+            <a href={`/?relist=${encodeURIComponent(token)}`}>Run this same list again</a> — it comes back pre-filled,
+            so re-checking costs a click rather than a rebuild.
+          </p>
         </div>
       ) : null}
 

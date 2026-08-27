@@ -1,19 +1,58 @@
 "use client";
 
-import { useDeferredValue, useMemo, useRef, useState } from "react";
+import { useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
 import { MAX_ROWS, MAX_UPLOAD_BYTES } from "@/lib/limits";
 import { formatMinor, quote } from "@/lib/pricing";
 import { parseVat, parseVatList } from "@/lib/vat";
 
 type ApiError = { error: string; message?: string };
 type ApiOk = { checkoutUrl: string; resultUrl: string };
+type ApiList = { requesterVat: string; vatNumbers: string[] };
+
+/** State of the "run my previous list again" pre-fill, driven by ?relist=<token>. */
+type Relist = { state: "loading" } | { state: "ready"; count: number } | { state: "gone" };
 
 export function OrderForm() {
   const [requesterVat, setRequesterVat] = useState("");
   const [list, setList] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [relist, setRelist] = useState<Relist | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+  const relistDone = useRef(false);
+
+  // A previous order can hand its list back to this form via ?relist=<token>.
+  // VAT registrations lapse, so the same list is worth re-checking every period;
+  // making the customer rebuild it by hand is what stops them coming back.
+  useEffect(() => {
+    if (relistDone.current) return;
+    relistDone.current = true;
+
+    const token = new URLSearchParams(window.location.search).get("relist");
+    if (!token || !/^[A-Za-z0-9_-]{6,64}$/.test(token)) return;
+
+    setRelist({ state: "loading" });
+    void (async () => {
+      try {
+        const res = await fetch(`/api/orders/${encodeURIComponent(token)}/list`, { cache: "no-store" });
+        if (!res.ok) {
+          setRelist({ state: "gone" });
+          return;
+        }
+        const body = (await res.json()) as ApiList;
+        if (!Array.isArray(body.vatNumbers) || body.vatNumbers.length === 0) {
+          setRelist({ state: "gone" });
+          return;
+        }
+        setList(body.vatNumbers.join("\n"));
+        // "(purged)" is what a retention sweep leaves behind; never pre-fill it.
+        if (body.requesterVat && !body.requesterVat.includes("(")) setRequesterVat(body.requesterVat);
+        setRelist({ state: "ready", count: body.vatNumbers.length });
+      } catch {
+        setRelist({ state: "gone" });
+      }
+    })();
+  }, []);
 
   // Parsing runs on the exact same module the server uses, so what the customer
   // is quoted is what the server will charge.
@@ -74,6 +113,17 @@ export function OrderForm() {
     <div className="panel">
       <p className="card-title">Start a verification</p>
       <p className="card-sub">Paste your list, see the price, pay once. Nothing is charged until you confirm.</p>
+
+      {relist?.state === "loading" ? <p className="hint">Loading your previous list…</p> : null}
+      {relist?.state === "ready" ? (
+        <p className="notice">
+          Loaded {relist.count} VAT number{relist.count === 1 ? "" : "s"} from your previous order. Edit the list if it
+          has changed, then re-verify to get consultation numbers dated today.
+        </p>
+      ) : null}
+      {relist?.state === "gone" ? (
+        <p className="hint">That previous order is no longer available, so the list could not be loaded.</p>
+      ) : null}
 
       <div className="field">
         <label htmlFor="requester">Your own EU VAT number</label>

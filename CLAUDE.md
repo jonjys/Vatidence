@@ -54,6 +54,32 @@ lock. There is no manual migration step in the deploy flow.
 Migration files are checksummed after they are applied — never edit an applied
 file, add a new one.
 
+## What VIES will and will not do
+
+Measured against the live service on 2026-08-27, because guessing here costs
+weeks:
+
+- **The qualified check is not available.** Sending `traderName`,
+  `traderStreet`, `traderPostalCode`, `traderCity` and `traderCompanyType` to
+  the REST API is accepted and answered with `NOT_PROCESSED` for every match
+  field, in every member state tried (DE, NL, PL, SE, IE, DK, PT, LU, IT).
+  Only the legacy SOAP endpoint (`checkVatApprox` at
+  `/vies/services/checkVatService`) performs the match, and there only a
+  minority of member states answer it — ES did, DE/NL/PL/SE/IE/DK/PT/LU/IT
+  returned no match elements at all. So "the German
+  *qualifizierte Bestätigungsabfrage* as a product" cannot be built on VIES;
+  that service is the BZSt's own, not the Commission's. `tests/vies-live.test.ts`
+  pins this so we find out if it ever changes.
+- **The REST API has exactly two endpoints**: `POST /check-vat-number` and
+  `GET /check-status`. There is no OpenAPI document, no member-state listing,
+  and no other resource — everything else 404s.
+- **`requestIdentifier` has no stable format.** Some member states return a
+  UUID (`8ed996c1-28db-…`), others a short opaque token (`WAPIAAAAaBDiifgO`).
+  Never validate its shape; store it verbatim.
+- **`name` and `address` are frequently `---`.** Several member states,
+  Germany among them, disclose nothing beyond validity. The evidence pack has
+  to read well with those fields empty.
+
 ## Testing
 
 ```bash

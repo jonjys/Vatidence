@@ -43,4 +43,48 @@ describe.skipIf(!live)("VIES live contract", () => {
     expect(result.valid).toBe(false);
     expect(result.requestIdentifier).toBeNull();
   }, 30_000);
+
+  /**
+   * Why this test exists.
+   *
+   * The obvious next product on top of this one is the "qualified" check -
+   * sending the trader's name and address and reporting whether they match the
+   * registry, which is what German law (qualifizierte Bestaetigungsabfrage)
+   * asks for and what a plain validity check explicitly does not satisfy.
+   *
+   * Measured 2026-08-27: the REST API accepts the trader fields and answers
+   * NOT_PROCESSED for every one of them, in every member state tried
+   * (DE, NL, PL, SE, IE, DK, PT, LU, IT). Only the legacy SOAP endpoint
+   * performs the match at all, and only a minority of member states answer it
+   * there - Germany is not among them. So the feature cannot be built on this
+   * API today.
+   *
+   * This test pins that finding to reality. If the Commission ever starts
+   * processing the match, this fails, and the opportunity is worth revisiting.
+   */
+  it("still does not process the qualified trader match, so that product is not available", async () => {
+    const res = await fetch("https://ec.europa.eu/taxation_customs/vies/rest-api/check-vat-number", {
+      method: "POST",
+      headers: { "content-type": "application/json", accept: "application/json" },
+      body: JSON.stringify({
+        countryCode: "DE",
+        vatNumber: "811907980",
+        requesterMemberStateCode: "SE",
+        requesterNumber: "556036079301",
+        traderName: "Bayerische Motoren Werke",
+        traderStreet: "Petuelring 130",
+        traderPostalCode: "80809",
+        traderCity: "Muenchen",
+        traderCompanyType: "AG",
+      }),
+    });
+    const body = (await res.json()) as Record<string, unknown>;
+    if (body.actionSucceed === false) return; // member state busy; nothing to assert
+
+    expect(body.traderNameMatch).toBe("NOT_PROCESSED");
+    expect(body.traderStreetMatch).toBe("NOT_PROCESSED");
+    expect(body.traderPostalCodeMatch).toBe("NOT_PROCESSED");
+    expect(body.traderCityMatch).toBe("NOT_PROCESSED");
+    expect(body.traderCompanyTypeMatch).toBe("NOT_PROCESSED");
+  }, 30_000);
 });

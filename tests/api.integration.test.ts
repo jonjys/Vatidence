@@ -91,6 +91,7 @@ let webhookRoute: typeof import("@/app/api/stripe/webhook/route");
 let csvRoute: typeof import("@/app/api/orders/[token]/results.csv/route");
 let pdfRoute: typeof import("@/app/api/orders/[token]/evidence.pdf/route");
 let cronRoute: typeof import("@/app/api/cron/reconcile/route");
+let listRoute: typeof import("@/app/api/orders/[token]/list/route");
 let db: typeof import("@/lib/db");
 
 const TABLES = [
@@ -159,6 +160,7 @@ describe.skipIf(!url)("HTTP money path", () => {
     csvRoute = await import("@/app/api/orders/[token]/results.csv/route");
     pdfRoute = await import("@/app/api/orders/[token]/evidence.pdf/route");
     cronRoute = await import("@/app/api/cron/reconcile/route");
+    listRoute = await import("@/app/api/orders/[token]/list/route");
   });
 
   afterAll(async () => {
@@ -388,6 +390,51 @@ describe.skipIf(!url)("HTTP money path", () => {
       params: Promise.resolve({ token: "does-not-exist" }),
     });
     expect(res.status).toBe(404);
+  });
+
+  it("hands a previous list back so the same customer can re-run it", async () => {
+    // Repeat purchase is the only growth channel a product with no account has:
+    // the list must come back without the customer rebuilding it.
+    const { body } = await placeOrder(["IT00743110157", "SE556036079301", "FR40303265045"], "203.0.113.31", "relist-key");
+    const token = String(body.orderToken);
+
+    const res = await listRoute.GET(new Request("https://vatproof.test") as never, {
+      params: Promise.resolve({ token }),
+    });
+    expect(res.status).toBe(200);
+
+    const list = (await res.json()) as { requesterVat: string; vatNumbers: string[]; itemCount: number };
+    // Order is the customer's original row order, not whatever the database returns.
+    expect(list.vatNumbers).toEqual(["IT00743110157", "SE556036079301", "FR40303265045"]);
+    expect(list.requesterVat).toBe("SE556036079301");
+    expect(list.itemCount).toBe(3);
+  });
+
+  it("returns 404 rather than an empty list for an unknown token", async () => {
+    const res = await listRoute.GET(new Request("https://vatproof.test") as never, {
+      params: Promise.resolve({ token: "no-such-order" }),
+    });
+    expect(res.status).toBe(404);
+  });
+
+  it("refuses to hand back a list that data retention has already erased", async () => {
+    const { body } = await placeOrder(["IT00743110157"], "203.0.113.32", "relist-purged-key");
+    const token = String(body.orderToken);
+    await pool.query(
+      `UPDATE vatproof.orders SET purged_at = now(), requester_vat = '(purged)' WHERE public_token = $1`,
+      [token],
+    );
+    await pool.query(
+      `UPDATE vatproof.order_items SET vat_number = '(purged)'
+       WHERE order_id = (SELECT id FROM vatproof.orders WHERE public_token = $1)`,
+      [token],
+    );
+
+    const res = await listRoute.GET(new Request("https://vatproof.test") as never, {
+      params: Promise.resolve({ token }),
+    });
+    expect(res.status).toBe(410);
+    expect(await res.text()).not.toContain("(purged)");
   });
 
   it("guards the cron endpoint and completes work the webhook never finished", async () => {
