@@ -40,53 +40,87 @@ export type CheckoutInput = {
   idempotencyKey: string;
 };
 
+/**
+ * Stripe's Managed Payments makes Stripe the merchant of record for a 3.5%
+ * surcharge per transaction, and it is incompatible with `custom_text`. It can
+ * be switched on account-wide from the dashboard - and is on by default for
+ * new accounts - which takes checkout down with a 502 without a single line of
+ * our code changing. This machine is supposed to run unattended, so every
+ * session opts out explicitly rather than trusting an account setting.
+ */
+export function isUnknownParameterError(e: unknown, param: string): boolean {
+  if (!(e instanceof Stripe.errors.StripeInvalidRequestError)) return false;
+  const message = e.message.toLowerCase();
+  return (
+    (e.param === param || message.includes(param)) &&
+    (message.includes("unknown parameter") || message.includes("unrecognized parameter"))
+  );
+}
+
 export async function createCheckoutSession(input: CheckoutInput): Promise<Stripe.Checkout.Session> {
+  const params = checkoutParams(input);
+  const options = { idempotencyKey: input.idempotencyKey };
+
+  try {
+    return await stripe().checkout.sessions.create(
+      // Not in the pinned SDK's types yet; the API at this version accepts it.
+      { ...params, managed_payments: { enabled: false } } as Stripe.Checkout.SessionCreateParams,
+      options,
+    );
+  } catch (e) {
+    if (!isUnknownParameterError(e, "managed_payments")) throw e;
+    // An API version that does not know the parameter cannot have Managed
+    // Payments enabled either, so a plain session is the correct fallback.
+    // Stripe saves no idempotent result for a parameter validation failure,
+    // so reusing the key here is safe.
+    return stripe().checkout.sessions.create(params, options);
+  }
+}
+
+function checkoutParams(input: CheckoutInput): Stripe.Checkout.SessionCreateParams {
   const config = env();
   const resultUrl = `${config.APP_URL}/r/${input.publicToken}`;
 
-  return stripe().checkout.sessions.create(
-    {
-      mode: "payment",
-      client_reference_id: input.publicToken,
-      // The customer never creates an account here; Stripe collects the email
-      // for the receipt and we never copy it into our own database.
-      line_items: [
-        {
-          quantity: 1,
-          price_data: {
-            currency: input.currency,
-            unit_amount: input.amountMinor,
-            product_data: {
-              name: `VIES verification of ${input.itemCount} EU VAT number${input.itemCount === 1 ? "" : "s"}`,
-              description:
-                "Official EU VIES consultation numbers plus a sealed PDF/CSV evidence pack, delivered automatically.",
-            },
+  return {
+    mode: "payment",
+    client_reference_id: input.publicToken,
+    // The customer never creates an account here; Stripe collects the email
+    // for the receipt and we never copy it into our own database.
+    line_items: [
+      {
+        quantity: 1,
+        price_data: {
+          currency: input.currency,
+          unit_amount: input.amountMinor,
+          product_data: {
+            name: `VIES verification of ${input.itemCount} EU VAT number${input.itemCount === 1 ? "" : "s"}`,
+            description:
+              "Official EU VIES consultation numbers plus a sealed PDF/CSV evidence pack, delivered automatically.",
           },
         },
-      ],
-      metadata: { order_id: input.orderId, public_token: input.publicToken },
-      payment_intent_data: {
-        description: `VATProof order ${input.orderId}`,
-        metadata: { order_id: input.orderId, public_token: input.publicToken },
-        // Without this the charge shows only the Stripe account's own name,
-        // which a customer who bought VAT evidence will not recognise weeks
-        // later. Unrecognised descriptors are what chargebacks are made of.
-        statement_descriptor_suffix: config.STRIPE_STATEMENT_SUFFIX,
       },
-      ...(config.STRIPE_TAX_ENABLED
-        ? { automatic_tax: { enabled: true }, tax_id_collection: { enabled: true } }
-        : {}),
-      success_url: `${resultUrl}?paid=1&session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${resultUrl}?canceled=1`,
-      expires_at: Math.floor(Date.now() / 1000) + 60 * 60, // 1h, Stripe's minimum window is 30m
-      custom_text: {
-        submit: {
-          message: `Your results will appear at ${resultUrl} immediately after payment. Save this link.`,
-        },
+    ],
+    metadata: { order_id: input.orderId, public_token: input.publicToken },
+    payment_intent_data: {
+      description: `VATProof order ${input.orderId}`,
+      metadata: { order_id: input.orderId, public_token: input.publicToken },
+      // Without this the charge shows only the Stripe account's own name,
+      // which a customer who bought VAT evidence will not recognise weeks
+      // later. Unrecognised descriptors are what chargebacks are made of.
+      statement_descriptor_suffix: config.STRIPE_STATEMENT_SUFFIX,
+    },
+    ...(config.STRIPE_TAX_ENABLED
+      ? { automatic_tax: { enabled: true }, tax_id_collection: { enabled: true } }
+      : {}),
+    success_url: `${resultUrl}?paid=1&session_id={CHECKOUT_SESSION_ID}`,
+    cancel_url: `${resultUrl}?canceled=1`,
+    expires_at: Math.floor(Date.now() / 1000) + 60 * 60, // 1h, Stripe's minimum window is 30m
+    custom_text: {
+      submit: {
+        message: `Your results will appear at ${resultUrl} immediately after payment. Save this link.`,
       },
     },
-    { idempotencyKey: input.idempotencyKey },
-  );
+  };
 }
 
 export type ChargeFee = { feeMinor: number; currency: string; chargeId: string };

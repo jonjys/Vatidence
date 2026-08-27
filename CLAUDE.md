@@ -43,6 +43,26 @@ real time to discover.
   cron sweep deletes unpaid expired orders for this reason.
 - Stripe keys in production are **live**. A test purchase charges a real card.
 
+## Stripe facts
+
+- **Managed Payments is on by default for a new account and breaks checkout.**
+  It makes Stripe the merchant of record for a 3.5% surcharge per transaction,
+  and it is incompatible with `custom_text`: every `checkout.sessions.create`
+  fails with `custom_text cannot be used with Managed Payments`, which surfaces
+  as a 502 on `POST /api/orders`. Nothing in this repo changed to cause it -
+  it arrived with a new Stripe account. `createCheckoutSession` therefore
+  passes `managed_payments: { enabled: false }` on every session instead of
+  trusting the account setting. The parameter is not in the pinned SDK's types
+  (stripe 18.5.0), so it goes through a cast, with a fallback for API versions
+  that reject it as unknown.
+- **Switching Stripe accounts needs both keys and a redeploy.** A new
+  `STRIPE_SECRET_KEY` without a matching `STRIPE_WEBHOOK_SECRET` is the worst
+  case: checkout works, the webhook 400s on every event, and the order never
+  leaves `awaiting_payment` - so the customer is charged, nothing is delivered,
+  and the automatic refund never fires because that only covers paid orders.
+- Refunds can only be issued from the account that took the payment, so orders
+  taken before an account switch have to be settled from the old dashboard.
+
 ## How migrations work
 
 `npm run build` runs `tsx scripts/migrate.ts --optional` before `next build`.
