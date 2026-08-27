@@ -235,8 +235,9 @@ delivered order.
   If you point `DATABASE_URL` at a database another application already uses,
   nothing collides — and `CREATE TABLE IF NOT EXISTS` cannot silently adopt a
   foreign table that happens to be called `orders` or `rate_limits`. If an
-  earlier deploy of this app created tables in `public`, they are orphaned and
-  safe to drop once you have checked nothing else owns them.
+  earlier deploy of this app created tables in `public`, check each one's
+  columns before dropping it — a name collision cuts both ways, and the table
+  you are about to drop may be the other application's.
 - **Data retention.** `DATA_RETENTION_DAYS` (default 90) after an order is
   placed, VAT numbers and trader details are erased by the cron sweep and the
   results stop being retrievable. Ledger rows survive, without identifying data.
@@ -249,5 +250,10 @@ delivered order.
   the webhook and result-page triggers cover everything else.
 - **VIES throttling.** Raising `VIES_MAX_CONCURRENCY` above ~6 tends to produce
   `MS_MAX_CONCURRENT_REQ`, which costs retries, not money. The default is 4.
+- **Put the functions where the database is.** `vercel.json` pins the function
+  region. An order is dominated by database round trips, not by VIES calls
+  (those run concurrently), so co-locating the functions with the Neon region
+  matters more than being close to Brussels. `iad1` pairs with a Neon project
+  in `aws-us-east-1`; use `arn1` with `eu-central-1`, and so on.
 - **Scaling the upstream is free.** Cost per order is a Stripe fee and nothing
   else, so margin per order improves with basket size, not with volume.
