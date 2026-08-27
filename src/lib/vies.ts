@@ -58,13 +58,20 @@ export function classify(code: string): boolean {
   return true;
 }
 
+export type ViesCheckParams = {
+  countryCode: CountryCode;
+  vatNumber: string;
+  /**
+   * The requester's own VAT number. Omitting it is a deliberate, supported
+   * call: VIES answers valid/not valid but issues NO consultation number,
+   * which is exactly the difference the paid product sells.
+   */
+  requesterCountryCode?: CountryCode;
+  requesterNumber?: string;
+};
+
 export interface ViesClient {
-  check(params: {
-    countryCode: CountryCode;
-    vatNumber: string;
-    requesterCountryCode: CountryCode;
-    requesterNumber: string;
-  }): Promise<ViesResult>;
+  check(params: ViesCheckParams): Promise<ViesResult>;
 }
 
 type ViesSuccessBody = {
@@ -94,12 +101,7 @@ export class HttpViesClient implements ViesClient {
     private readonly timeoutMs: number = env().VIES_TIMEOUT_MS,
   ) {}
 
-  async check(params: {
-    countryCode: CountryCode;
-    vatNumber: string;
-    requesterCountryCode: CountryCode;
-    requesterNumber: string;
-  }): Promise<ViesResult> {
+  async check(params: ViesCheckParams): Promise<ViesResult> {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), this.timeoutMs);
 
@@ -110,8 +112,13 @@ export class HttpViesClient implements ViesClient {
         body: JSON.stringify({
           countryCode: params.countryCode,
           vatNumber: params.vatNumber,
-          requesterMemberStateCode: params.requesterCountryCode,
-          requesterNumber: params.requesterNumber,
+          // Sent only as a pair; a half-identified requester is rejected.
+          ...(params.requesterCountryCode && params.requesterNumber
+            ? {
+                requesterMemberStateCode: params.requesterCountryCode,
+                requesterNumber: params.requesterNumber,
+              }
+            : {}),
         }),
         signal: controller.signal,
         cache: "no-store",

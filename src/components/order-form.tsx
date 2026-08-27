@@ -12,7 +12,10 @@ type ApiList = { requesterVat: string; vatNumbers: string[] };
 /** State of the "run my previous list again" pre-fill, driven by ?relist=<token>. */
 type Relist = { state: "loading" } | { state: "ready"; count: number } | { state: "gone" };
 
-export function OrderForm() {
+/** A number handed over from the free check, so it lands in the batch. */
+export type OrderFormSeed = { vatNumber: string; at: number };
+
+export function OrderForm({ seed }: { seed?: OrderFormSeed | null } = {}) {
   const [requesterVat, setRequesterVat] = useState("");
   const [list, setList] = useState("");
   const [busy, setBusy] = useState(false);
@@ -53,6 +56,21 @@ export function OrderForm() {
       }
     })();
   }, []);
+
+  // A free check that came back without a consultation number hands its number
+  // here. `at` makes a repeat of the same number a distinct event, so checking
+  // the same one twice still moves it into the batch.
+  const lastSeed = useRef(0);
+  useEffect(() => {
+    if (!seed || seed.at === lastSeed.current) return;
+    lastSeed.current = seed.at;
+    setList((prev) => {
+      const already = parseVatList(prev, MAX_ROWS).items.some((i) => i.canonical === seed.vatNumber);
+      if (already) return prev;
+      return prev.trim() ? `${prev.trimEnd()}\n${seed.vatNumber}` : seed.vatNumber;
+    });
+    document.getElementById("list")?.scrollIntoView({ behavior: "smooth", block: "center" });
+  }, [seed]);
 
   // Parsing runs on the exact same module the server uses, so what the customer
   // is quoted is what the server will charge.

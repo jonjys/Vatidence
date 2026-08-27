@@ -113,6 +113,7 @@ let csvRoute: typeof import("@/app/api/orders/[token]/results.csv/route");
 let pdfRoute: typeof import("@/app/api/orders/[token]/evidence.pdf/route");
 let cronRoute: typeof import("@/app/api/cron/reconcile/route");
 let listRoute: typeof import("@/app/api/orders/[token]/list/route");
+let checkRoute: typeof import("@/app/api/check/route");
 let db: typeof import("@/lib/db");
 
 const TABLES = [
@@ -182,6 +183,7 @@ describe.skipIf(!url)("HTTP money path", () => {
     pdfRoute = await import("@/app/api/orders/[token]/evidence.pdf/route");
     cronRoute = await import("@/app/api/cron/reconcile/route");
     listRoute = await import("@/app/api/orders/[token]/list/route");
+    checkRoute = await import("@/app/api/check/route");
   });
 
   afterAll(async () => {
@@ -455,6 +457,42 @@ describe.skipIf(!url)("HTTP money path", () => {
     expect(feeA.rowCount).toBe(0);
     // The healthy order behind it still gets its true cost.
     expect(feeB.rows[0]).toMatchObject({ amount_minor: -32 });
+  });
+
+  function checkRequest(vatNumber: unknown, ip = "203.0.113.90"): Request {
+    return new Request("https://vatproof.test/api/check", {
+      method: "POST",
+      headers: { "content-type": "application/json", "x-forwarded-for": ip },
+      body: JSON.stringify({ vatNumber }),
+    });
+  }
+
+  it("answers a free check without a consultation number, and takes no money", async () => {
+    // The free check is the front door: it must give a real answer, state
+    // plainly that the answer is not evidence, and create no order.
+    const res = await checkRoute.POST(checkRequest("DE811907980", "203.0.113.91") as never);
+    expect(res.status).toBe(200);
+
+    const body = (await res.json()) as Record<string, unknown>;
+    expect(body).toMatchObject({ vatNumber: "DE811907980", valid: true, consultationNumber: null });
+
+    expect((await pool.query("SELECT * FROM vatproof.orders")).rowCount).toBe(0);
+    expect((await pool.query("SELECT * FROM vatproof.ledger_entries")).rowCount).toBe(0);
+  });
+
+  it("refuses a malformed number without spending a VIES call", async () => {
+    const res = await checkRoute.POST(checkRequest("nonsense", "203.0.113.92") as never);
+    expect(res.status).toBe(400);
+  });
+
+  it("caps the free check so it cannot be used as the paid batch", async () => {
+    const codes: number[] = [];
+    for (let i = 0; i < 9; i++) {
+      const res = await checkRoute.POST(checkRequest("DE811907980", "203.0.113.93") as never);
+      codes.push(res.status);
+    }
+    expect(codes.filter((c) => c === 200).length).toBeGreaterThan(0);
+    expect(codes).toContain(429);
   });
 
   it("hands a previous list back so the same customer can re-run it", async () => {

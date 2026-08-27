@@ -135,6 +135,20 @@ CI runs the build with `DATABASE_URL` set so `scripts/migrate.ts` itself is
 exercised — the integration tests apply the migration SQL directly and would
 otherwise never execute the runner.
 
+## Why there is a free check
+
+`POST /api/check` answers one VAT number for free, anonymously, and persists
+nothing. It is not a giveaway, it is the only entry point the product has: a
+site that is purely a checkout gives a stranger nothing to try, bookmark or
+mention, and every organic channel this business is allowed to use starts with
+someone linking to something usable. The paid product is unaffected because
+the free answer genuinely lacks the consultation number - no requester is sent
+upstream, which `tests/vies.test.ts` pins.
+
+It is capped hard (6/minute, 40/hour per address hash) for two reasons: the
+capacity being spent is the European Commission's, and bulk checking is the
+thing being sold.
+
 ## Invariants worth protecting
 
 - Fulfillment never runs against an unpaid order; the state machine throws on

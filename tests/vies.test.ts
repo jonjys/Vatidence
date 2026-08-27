@@ -40,6 +40,26 @@ describe("HttpViesClient", () => {
     });
   });
 
+  it("omits the requester entirely on a free check, so no consultation number is issued", async () => {
+    // The free check is the front door and the paid product is the identifier.
+    // Sending a half-identified requester would be rejected by VIES, and
+    // sending a full one would give the answer away.
+    const fetchMock = vi.fn(async () => respond({ valid: true, requestIdentifier: "", name: "ACME" }));
+    vi.stubGlobal("fetch", fetchMock);
+
+    const result = await new HttpViesClient("https://vies.test", 5_000).check({
+      countryCode: "DE",
+      vatNumber: "811907980",
+    });
+
+    const call = fetchMock.mock.calls[0] as unknown as [string, RequestInit];
+    const sent = JSON.parse(String(call[1].body)) as Record<string, unknown>;
+    expect(sent).toEqual({ countryCode: "DE", vatNumber: "811907980" });
+    expect(sent).not.toHaveProperty("requesterMemberStateCode");
+    expect(sent).not.toHaveProperty("requesterNumber");
+    expect(result).toMatchObject({ kind: "answer", valid: true, requestIdentifier: null });
+  });
+
   it("normalises the placeholder values VIES returns for unknown fields", async () => {
     vi.stubGlobal("fetch", vi.fn(async () => respond({ valid: false, requestIdentifier: "", name: "---", address: "   " })));
 

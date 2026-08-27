@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { OrderForm } from "@/components/order-form";
+import { HomeInteractive } from "@/components/home-interactive";
 import { MINIMUM_ORDER_MINOR, TIERS, formatMinor } from "@/lib/pricing";
 
 export const dynamic = "force-static";
@@ -13,15 +13,16 @@ export default function HomePage() {
           Checked against the European Commission&apos;s VIES service with your own VAT number attached — the only way
           to get a consultation number an auditor accepts. Sealed PDF and CSV, immediately.
         </p>
-        <ul className="specs">
-          <li>27 member states</li>
-          <li>Consultation number</li>
-          <li>PDF + CSV</li>
-          <li>No account</li>
-        </ul>
       </div>
 
-      <OrderForm />
+      <HomeInteractive />
+
+      <ul className="specs">
+        <li>27 member states</li>
+        <li>Consultation number</li>
+        <li>PDF + CSV</li>
+        <li>No account</li>
+      </ul>
 
       <h2>Why the consultation number matters</h2>
       <p>
