@@ -448,6 +448,12 @@ describe.skipIf(!url)("HTTP money path", () => {
     );
     expect(res.status).toBe(200);
 
+    // A permanently unresolvable fee is a known state, not a failure: counting
+    // it as an error would make every future sweep report ok:false and bury a
+    // real one.
+    const summary = (await res.json()) as Record<string, unknown>;
+    expect(summary).toMatchObject({ ok: true, errors: 0, unresolvableFees: 1, fees: 1 });
+
     const feeA = await pool.query("SELECT 1 FROM vatproof.ledger_entries WHERE order_id = $1 AND kind = 'stripe_fee'", [orderA.id]);
     const feeB = await pool.query<{ amount_minor: number }>(
       "SELECT amount_minor FROM vatproof.ledger_entries WHERE order_id = $1 AND kind = 'stripe_fee'",

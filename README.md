@@ -255,8 +255,10 @@ Nobody has to approve an order, answer a customer, or watch a dashboard.
 - **A fee that cannot be backfilled.** Same cause: the payment intent belongs
   to an account this deployment no longer has keys for, so
   `fetchFeeForPaymentIntent` gets `resource_missing` forever. The sweep logs
-  `ledger.fee_unresolvable` and moves on; book that cost by hand or the ledger
-  overstates margin by it. One order is in this state today: the Stripe fee on
+  `ledger.fee_unresolvable`, counts it under `unresolvableFees` rather than
+  `errors`, and moves on - a permanent known state must not make every future
+  sweep report failure, or a real one becomes invisible. Book that cost by hand
+  or the ledger overstates margin by it. One order is in this state today: the Stripe fee on
   it was SEK 3.71 (SEK 2.62 processing + SEK 1.09 currency conversion).
 - **A Stripe account setting that changes under you.** Managed Payments
   arriving on by default already took checkout down once. Every session opts

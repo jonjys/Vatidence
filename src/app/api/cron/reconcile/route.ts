@@ -31,7 +31,7 @@ export async function GET(req: NextRequest): Promise<Response> {
 
   const startedAt = Date.now();
   const budgetMs = 50_000;
-  const summary = { expired: 0, deleted: 0, resumed: 0, completed: 0, fees: 0, purged: 0, errors: 0 };
+  const summary = { expired: 0, deleted: 0, resumed: 0, completed: 0, fees: 0, unresolvableFees: 0, purged: 0, errors: 0 };
 
   try {
     summary.expired = await store.expireStaleOrders(new Date(Date.now() - CHECKOUT_TTL_MS), 200);
@@ -83,15 +83,20 @@ export async function GET(req: NextRequest): Promise<Response> {
         summary.fees++;
         log.info("ledger.fee_backfilled", { orderId: order.id, feeMinor: fee.feeMinor, currency: fee.currency });
       } catch (e) {
-        summary.errors++;
         if (isPermanentlyUnresolvable(e)) {
-          // Almost always an order taken by a Stripe account this deployment no
-          // longer holds the keys for. Its fee has to be booked by hand.
+          // An order taken by a Stripe account this deployment no longer holds
+          // the keys for. It is a known, accepted, permanent state - its fee is
+          // booked by hand - and it will recur on every future sweep. Counting
+          // it as an error would make `ok` false every night forever, which
+          // costs the only signal worth watching: a real failure would be
+          // indistinguishable from this one.
+          summary.unresolvableFees++;
           log.warn("ledger.fee_unresolvable", {
             orderId: order.id,
             paymentIntentId: order.stripePaymentIntentId,
           });
         } else {
+          summary.errors++;
           log.error("cron.fee_backfill_failed", { orderId: order.id, error: errorMessage(e) });
         }
       }
