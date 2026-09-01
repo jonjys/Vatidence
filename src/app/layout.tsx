@@ -3,9 +3,16 @@ import Link from "next/link";
 import { siteUrl } from "@/lib/site";
 import "./globals.css";
 
-const TITLE = "VATProof - EU VAT numbers verified in bulk, with official VIES consultation numbers";
+// Google renders roughly 60 characters of a title and about 155 of a
+// description. The previous pair overran both: the title was cut mid-phrase at
+// "official VIES consultation...", and the description opened with "pay per
+// row" - so the second thing a stranger read in the results was the word pay,
+// from a snippet written before the free check existed. The snippet is the
+// only advertisement this site has; it should lead with the thing anyone can
+// do without deciding to trust it first.
+const TITLE = "VATProof - bulk EU VAT checks with VIES consultation numbers";
 const DESCRIPTION =
-  "Upload a list of EU VAT numbers, pay per row, get every official VIES consultation number plus a sealed PDF and CSV evidence pack. No account, no subscription.";
+  "Check one EU VAT number free, instantly. Or verify a whole list and get every official VIES consultation number in a sealed PDF and CSV. No account.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
