@@ -1,11 +1,17 @@
-# VATProof
+# VIESProof
+
+**Live:** [viesproof.eu](https://viesproof.eu) · **Repo:** [jonjys/viesproof](https://github.com/jonjys/viesproof)
 
 A machine that sits between EU businesses and the European Commission's VIES
 service, and charges per verified VAT number.
 
-Someone pastes a list of customer VAT numbers, pays, and gets back every
-official VIES **consultation number** plus a sealed PDF/CSV evidence pack. No
-account, no login, no dashboard, no subscription. Nobody operates it.
+Anyone can check one VAT number free, on the page, in about a second. Someone
+who needs proof pastes a list, pays, and gets back every official VIES
+**consultation number** plus a sealed PDF/CSV evidence pack. No account, no
+login, no dashboard, no subscription. Nobody operates it.
+
+> The Postgres schema is called `vatproof`, not `viesproof`. That is
+> deliberate and load-bearing — see [Operating notes](#operating-notes).
 
 ---
 
@@ -18,6 +24,16 @@ account, no login, no dashboard, no subscription. Nobody operates it.
 | **Our cost per order** | The Stripe fee. Nothing else — VIES is a free, keyless government API. |
 | **Gross margin** | ~93% at €24 (Stripe EU cards ≈ 1.5% + €0.25 ⇒ ≈ €0.61). Rows the upstream cannot answer are auto-refunded, so revenue only exists where a real answer was delivered. |
 | **Why they buy** | Checking VIES by hand takes ~40 seconds per number and only produces a consultation number if the requester's own VAT number is entered — which most people don't know. 100 numbers is 1–2 hours of billable time; we do it for €24. |
+
+### The free check is the front door
+
+`POST /api/check` answers one VAT number for free and anonymously, and stores
+nothing. It is not a giveaway: a site that is only a checkout gives a stranger
+nothing to try, bookmark or mention. The free answer is honest about what it
+lacks — no requester is sent upstream, so VIES issues no consultation number —
+and that gap is the entire pitch for the paid product, made at the one moment
+it is concrete. It is capped at 6/minute and 40/hour per address hash, because
+the capacity being spent is the European Commission's.
 
 ### Why the consultation number is the product
 
@@ -172,9 +188,14 @@ src/lib/store.ts        data-access contract (Postgres in prod, in-memory in tes
 src/lib/store-pg.ts     the production SQL
 src/lib/evidence.ts     canonical result set, SHA-256 seal, CSV, PDF
 src/lib/stripe.ts       checkout, refunds, true fee lookup for the ledger
-src/app/api/…           orders, status, stripe webhook, cron, health, downloads
+src/lib/http.ts         guard(): any unhandled route failure becomes a clean 503
+src/lib/site.ts         the public origin, resolved at build time
+src/components/         the free check, the order form, the live result panel
+src/app/api/check       the free single-number check — no requester, no record
+src/app/api/orders/…    create, status, re-run a previous list, PDF, CSV
+src/app/api/…           stripe webhook, cron sweep, health
 db/migrations/          schema, applied by scripts/migrate.ts
-tests/                  117 tests; see below
+tests/                  155 tests; see below
 ```
 
 ### Ledger
@@ -210,8 +231,8 @@ Two further suites opt in through environment variables:
 
 ```bash
 # Runs the real production SQL and the real HTTP handlers against a Postgres.
-createdb vatproof_test
-TEST_DATABASE_URL="postgres://localhost/vatproof_test" npm test   # 117 tests
+createdb viesproof_test
+TEST_DATABASE_URL="postgres://localhost/viesproof_test" npm test  # 155 tests
 
 # Checks the live VIES contract has not changed (hits the European Commission).
 RUN_LIVE_VIES=1 npm test
@@ -298,7 +319,11 @@ change worth making is to the pricing shape rather than to the code.
 
 ## Operating notes
 
-- **Its own schema.** Every table lives in the `vatproof` schema, not `public`.
+- **Its own schema, under its old name.** Every table lives in the `vatproof`
+  schema, not `public`. The product was renamed to VIESProof; the schema was
+  not, because it is live in a shared database and renaming it would need a
+  migration for no benefit. Two Stripe idempotency key prefixes are frozen
+  for the same reason, and say so in the code.
   If you point `DATABASE_URL` at a database another application already uses,
   nothing collides — and `CREATE TABLE IF NOT EXISTS` cannot silently adopt a
   foreign table that happens to be called `orders` or `rate_limits`. If an

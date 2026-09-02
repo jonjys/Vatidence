@@ -173,8 +173,8 @@ const COLUMNS: Array<{ key: keyof EvidenceRow | "position"; label: string; width
 export async function toPdf(doc: EvidenceDocument, generatedAt: Date): Promise<Uint8Array> {
   const pdf = await PDFDocument.create();
   pdf.setTitle(`VIES verification evidence ${doc.orderReference}`);
-  pdf.setProducer("VATProof");
-  pdf.setCreator("VATProof");
+  pdf.setProducer("VIESProof");
+  pdf.setCreator("VIESProof");
 
   const font = await pdf.embedFont(StandardFonts.Helvetica);
   const bold = await pdf.embedFont(StandardFonts.HelveticaBold);

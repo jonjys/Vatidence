@@ -180,6 +180,8 @@ export async function runFulfillment(order: Order, deps: FulfillmentDeps): Promi
         const refund = await refunds.refund({
           paymentIntentId: order.stripePaymentIntentId,
           amountMinor: amount,
+          // Frozen prefix: changing it would make a retried refund look like a
+          // new one to Stripe, which is exactly what this key prevents.
           idempotencyKey: `vatproof-refund-${order.id}-auto`,
           reason: `${outcome.refundRows} of ${counts.total} rows could not be verified upstream`,
         });

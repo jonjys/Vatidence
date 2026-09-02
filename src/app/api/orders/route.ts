@@ -128,6 +128,8 @@ async function createOrder(req: NextRequest): Promise<Response> {
       itemCount: items.length,
       amountMinor: priced.totalMinor,
       currency: CURRENCY,
+      // Frozen prefix. A Stripe idempotency key must stay stable for the life
+      // of the order it belongs to, so it does not follow the rename.
       idempotencyKey: `vatproof-checkout-${orderId}`,
     });
 

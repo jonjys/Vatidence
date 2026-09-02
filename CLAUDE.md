@@ -1,8 +1,14 @@
 # Working on this repo
 
-VATProof: paid batch verification of EU VAT numbers against the European
-Commission's VIES service, delivering official consultation numbers plus a
-sealed PDF/CSV evidence pack. See README.md for what it does and why.
+VIESProof (viesproof.eu): a free single-number VAT check as the way in, and
+paid batch verification against the European Commission's VIES service that
+delivers official consultation numbers plus a sealed PDF/CSV evidence pack.
+See README.md for what it does and why.
+
+**The product is VIESProof; the Postgres schema is `vatproof`.** The schema was
+not renamed with the product - it is live in a database shared with other
+applications. Two Stripe idempotency key prefixes are frozen for the same
+reason. Both are commented in the code; do not "tidy" either.
 
 This file records the things that are not visible from the code and that cost
 real time to discover.
