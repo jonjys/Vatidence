@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { CONTACT } from "@/lib/contact";
 import { siteUrl } from "@/lib/site";
 import "./globals.css";
 
@@ -47,10 +48,19 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           </header>
           {children}
           <footer>
-            <Link href="/">Home</Link>
-            <Link href="/terms">Terms</Link>
-            <Link href="/refunds">Refunds</Link>
-            <Link href="/privacy">Privacy</Link>
+            <div className="footlinks">
+              <Link href="/">Home</Link>
+              <Link href="/contact">Contact</Link>
+              <Link href="/terms">Terms</Link>
+              <Link href="/refunds">Refunds</Link>
+              <Link href="/privacy">Privacy</Link>
+            </div>
+            <p className="byline">
+              A product by{" "}
+              <a href={CONTACT.operatorUrl} rel="noopener">
+                {CONTACT.operator}
+              </a>
+            </p>
           </footer>
         </main>
       </body>

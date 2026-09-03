@@ -1,3 +1,4 @@
+import { CONTACT, OPERATOR_LINE } from "@/lib/contact";
 import { env } from "@/lib/env";
 
 export const dynamic = "force-dynamic";
@@ -44,8 +45,12 @@ export default function PrivacyPage() {
       <h2>Your rights and contact</h2>
       <p>
         For access, correction or erasure ahead of the retention window, write to{" "}
-        <a href={`mailto:${config.SUPPORT_EMAIL}`}>{config.SUPPORT_EMAIL}</a> with the order URL. Controller:{" "}
-        {config.LEGAL_ENTITY}.
+        <a href={`mailto:${CONTACT.email.privacy}`}>{CONTACT.email.privacy}</a> with the order URL.
+      </p>
+      <p>
+        The controller is {OPERATOR_LINE}, which operates {CONTACT.product} at{" "}
+        <a href={CONTACT.productUrl}>viesproof.eu</a>. Data-protection requests reach a person fastest at the address
+        above; anything else can go to <a href={`mailto:${CONTACT.email.general}`}>{CONTACT.email.general}</a>.
       </p>
     </>
   );

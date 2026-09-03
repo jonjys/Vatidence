@@ -1,4 +1,5 @@
 import { PDFDocument, StandardFonts, rgb, type PDFFont, type PDFPage } from "pdf-lib";
+import { CONTACT, OPERATOR_LINE } from "@/lib/contact";
 import { sha256Hex } from "@/lib/ids";
 import type { Order, OrderItem } from "@/lib/types";
 
@@ -173,7 +174,7 @@ const COLUMNS: Array<{ key: keyof EvidenceRow | "position"; label: string; width
 export async function toPdf(doc: EvidenceDocument, generatedAt: Date): Promise<Uint8Array> {
   const pdf = await PDFDocument.create();
   pdf.setTitle(`VIES verification evidence ${doc.orderReference}`);
-  pdf.setProducer("VIESProof");
+  pdf.setAuthor(CONTACT.operator);
   pdf.setCreator("VIESProof");
 
   const font = await pdf.embedFont(StandardFonts.Helvetica);
@@ -234,6 +235,14 @@ export async function toPdf(doc: EvidenceDocument, generatedAt: Date): Promise<U
         "Consultation numbers are issued by the European Commission's VIES service and are the evidence of verification under EU VAT rules.",
       ),
       { x: MARGIN, y: MARGIN - 24, size: 7, font, color: rgb(0.5, 0.5, 0.55) },
+    );
+    // Whoever reads this pack months from now needs to know who produced it
+    // and where to write about it, without still having the order email.
+    page.drawText(
+      winAnsi(
+        `${CONTACT.product} - ${CONTACT.productUrl} - operated by ${OPERATOR_LINE} - ${CONTACT.email.support}`,
+      ),
+      { x: MARGIN, y: MARGIN - 34, size: 7, font, color: rgb(0.5, 0.5, 0.55) },
     );
 
     return y - ROW_H;

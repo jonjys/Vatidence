@@ -1,9 +1,8 @@
-import { env } from "@/lib/env";
+import { CONTACT } from "@/lib/contact";
 
 export const dynamic = "force-dynamic";
 
 export default function RefundsPage() {
-  const config = env();
   return (
     <>
       <h1>Refund policy</h1>
@@ -31,7 +30,9 @@ export default function RefundsPage() {
       <h2>Anything else</h2>
       <p>
         If an order failed in a way the automation did not catch, write to{" "}
-        <a href={`mailto:${config.SUPPORT_EMAIL}`}>{config.SUPPORT_EMAIL}</a> with the order URL and it will be refunded.
+        <a href={`mailto:${CONTACT.email.support}`}>{CONTACT.email.support}</a> with the order URL and it will be
+        refunded. For anything about the payment itself — an invoice, a receipt, a charge you do not recognise —{" "}
+        <a href={`mailto:${CONTACT.email.billing}`}>{CONTACT.email.billing}</a> is the faster route.
       </p>
     </>
   );

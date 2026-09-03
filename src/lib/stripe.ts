@@ -1,4 +1,5 @@
 import Stripe from "stripe";
+import { CONTACT } from "@/lib/contact";
 import { env } from "@/lib/env";
 import type { RefundGateway } from "@/lib/refunds";
 
@@ -117,7 +118,9 @@ function checkoutParams(input: CheckoutInput): Stripe.Checkout.SessionCreatePara
     expires_at: Math.floor(Date.now() / 1000) + 60 * 60, // 1h, Stripe's minimum window is 30m
     custom_text: {
       submit: {
-        message: `Your results will appear at ${resultUrl} immediately after payment. Save this link.`,
+        message:
+          `Your results will appear at ${resultUrl} immediately after payment. Save this link. ` +
+          `Sold by ${CONTACT.operator} (${CONTACT.operatorUrl}). Billing questions: ${CONTACT.email.billing}.`,
       },
     },
   };

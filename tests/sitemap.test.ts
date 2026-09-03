@@ -24,6 +24,7 @@ describe("sitemap", () => {
   it("lists exactly the public pages, absolute and without a double slash", () => {
     expect(sitemap().map((e) => e.url)).toEqual([
       "https://viesproof.eu/",
+      "https://viesproof.eu/contact",
       "https://viesproof.eu/terms",
       "https://viesproof.eu/refunds",
       "https://viesproof.eu/privacy",

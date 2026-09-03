@@ -266,3 +266,16 @@ button.link {
 }
 button.link:hover { text-decoration: underline; }
 button.link:disabled { color: var(--muted); cursor: default; }
+
+/* --- footer: links, then who operates this ---------------------------- */
+
+.footlinks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+}
+.byline {
+  margin: 10px 0 0;
+  font-size: 12.5px;
+  color: var(--muted);
+}

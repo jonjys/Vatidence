@@ -27,9 +27,6 @@ const schema = z.object({
   DATA_RETENTION_DAYS: z.coerce.number().int().min(1).max(3650).default(90),
   RATE_LIMIT_PER_HOUR: z.coerce.number().int().min(1).default(20),
   RATE_LIMIT_PER_MINUTE: z.coerce.number().int().min(1).default(5),
-  // Required by Stripe and by EU consumer/business law on the public pages.
-  LEGAL_ENTITY: z.string().min(1).default("the operator of this service"),
-  SUPPORT_EMAIL: z.string().min(1).default("support@example.com"),
 
   /**
    * Appended to the account-wide statement descriptor prefix, so a charge reads

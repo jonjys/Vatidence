@@ -1,3 +1,4 @@
+import { CONTACT, OPERATOR_LINE } from "@/lib/contact";
 import { env } from "@/lib/env";
 import { MINIMUM_ORDER_MINOR, formatMinor } from "@/lib/pricing";
 
@@ -59,8 +60,22 @@ export default function TermsPage() {
 
       <h2>7. Contact</h2>
       <p>
-        {config.LEGAL_ENTITY} — <a href={`mailto:${config.SUPPORT_EMAIL}`}>{config.SUPPORT_EMAIL}</a>
+        {CONTACT.product} is operated by {OPERATOR_LINE} (<a href={CONTACT.operatorUrl}>nyttolabs.com</a>).
       </p>
+      <ul>
+        <li>
+          General enquiries — <a href={`mailto:${CONTACT.email.general}`}>{CONTACT.email.general}</a>
+        </li>
+        <li>
+          An order that misbehaved — <a href={`mailto:${CONTACT.email.support}`}>{CONTACT.email.support}</a>
+        </li>
+        <li>
+          Payments, refunds and invoices — <a href={`mailto:${CONTACT.email.billing}`}>{CONTACT.email.billing}</a>
+        </li>
+        <li>
+          Data protection — <a href={`mailto:${CONTACT.email.privacy}`}>{CONTACT.email.privacy}</a>
+        </li>
+      </ul>
     </>
   );
 }
