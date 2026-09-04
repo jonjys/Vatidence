@@ -96,7 +96,7 @@ function checkoutParams(input: CheckoutInput): Stripe.Checkout.SessionCreatePara
           product_data: {
             name: `VIES verification of ${input.itemCount} EU VAT number${input.itemCount === 1 ? "" : "s"}`,
             description:
-              "Official EU VIES consultation numbers plus a sealed PDF/CSV evidence pack, delivered automatically.",
+              "VIES consultation numbers plus a sealed PDF/CSV evidence pack, delivered automatically.",
           },
         },
       },

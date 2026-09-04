@@ -90,8 +90,7 @@ export function FreeCheck({ onEscalate }: { onEscalate: (vatNumber: string) => v
           <div className="gap">
             <p>
               <strong>This answer carries no consultation number.</strong> VIES issues one only when the requester
-              gives their own VAT number, and that identifier — recording who checked, which number, and when — is what
-              an auditor asks for when a zero-rated intra-EU invoice is questioned.
+              gives their own VAT number, and that identifier records who checked, which number, and when.
             </p>
             <button type="button" className="link" onClick={() => onEscalate(result.vatNumber)}>
               Get the consultation number for {result.vatNumber} →

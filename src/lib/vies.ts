@@ -5,9 +5,9 @@ import type { CountryCode } from "@/lib/vat";
  * Client for the European Commission's VIES REST API - the single external API
  * this product depends on. It is free, keyless, and authoritative.
  *
- * The one detail the whole business rests on: VIES only issues an official
+ * The one detail the whole business rests on: VIES only issues a
  * consultation number (`requestIdentifier`) when the *requester's* own VAT
- * number is supplied. That identifier is the evidence a tax authority accepts.
+ * number is supplied. That identifier records who checked which number and when.
  */
 
 export type ViesAnswer = {

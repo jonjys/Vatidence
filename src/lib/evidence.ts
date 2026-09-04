@@ -232,7 +232,7 @@ export async function toPdf(doc: EvidenceDocument, generatedAt: Date): Promise<U
     });
     page.drawText(
       winAnsi(
-        "Consultation numbers are issued by the European Commission's VIES service and are the evidence of verification under EU VAT rules.",
+        "Consultation numbers are issued by the European Commission's VIES service when the requester identifies itself.",
       ),
       { x: MARGIN, y: MARGIN - 24, size: 7, font, color: rgb(0.5, 0.5, 0.55) },
     );
