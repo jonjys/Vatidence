@@ -25,7 +25,10 @@ describe.skipIf(!live)("VIES live contract", () => {
       return;
     }
     expect(result.valid).toBe(true);
-    expect(result.requestIdentifier).toMatch(/^[0-9a-f-]{36}$/);
+    // Member states return UUIDs, short tokens, or other opaque strings.
+    // Store the identifier verbatim; never pin its shape.
+    expect(result.requestIdentifier).toEqual(expect.any(String));
+    expect(result.requestIdentifier!.length).toBeGreaterThan(0);
     expect(result.name).toBeTruthy();
   }, 30_000);
 

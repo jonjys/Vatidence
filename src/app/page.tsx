@@ -8,10 +8,11 @@ export default function HomePage() {
   return (
     <>
       <div className="hero">
-        <h1>Bulk EU VAT checks, with the official proof.</h1>
+        <h1>Bulk EU VAT checks, with the consultation number.</h1>
         <p className="lede">
-          Checked against the European Commission&apos;s VIES service with your own VAT number attached — the only way
-          to get a consultation number an auditor accepts. Sealed PDF and CSV, immediately.
+          Checked against the European Commission&apos;s VIES service with your own VAT number attached — that is how
+          VIES issues a consultation number, recording who checked which number and when. Sealed PDF and CSV,
+          immediately.
         </p>
       </div>
 
@@ -28,7 +29,7 @@ export default function HomePage() {
       <p>
         Checking a VAT number on the VIES website without entering your own VAT number returns a yes/no and nothing else.
         Enter your own number and VIES returns a unique consultation number that records who checked, which number, and
-        when. That identifier is what an auditor asks for when a zero-rated intra-EU invoice is questioned. Doing that by
+        when. This service always sends the requester identity, so the paid result includes that number. Doing that by
         hand is roughly forty seconds per number, plus transcription into a spreadsheet.
       </p>
 

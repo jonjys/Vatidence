@@ -20,7 +20,7 @@ export const maxDuration = 30;
  * until someone already trusts it. So the plain answer is free - and the
  * answer itself carries the reason it is not enough: VIES issues a
  * consultation number only when the requester identifies itself, and without
- * that number there is nothing to show an auditor.
+ * that number the answer is a yes/no, not a consultation record.
  *
  * Nothing here is persisted. The only record is the rate-limit counter keyed
  * by a salted hash of the address, which the privacy notice already documents.
@@ -65,7 +65,7 @@ async function check(req: NextRequest): Promise<Response> {
     return json(
       {
         error: "rate_limited",
-        message: "That is a lot of single checks. Verify them as one batch instead — it is faster and it comes with proof.",
+        message: "That is a lot of single checks. Verify them as one batch instead — it is faster and includes the consultation number.",
         resetAt: (perMinute.allowed ? perHour : perMinute).resetAt,
       },
       429,

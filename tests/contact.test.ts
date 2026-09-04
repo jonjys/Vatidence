@@ -52,3 +52,12 @@ describe("published contact details", () => {
     for (const address of found) expect(address).toMatch(/@nyttolabs\.com$/);
   });
 });
+
+describe("published claims", () => {
+  it("does not assert auditor acceptance, official proof, or that this is the only way to get a consultation number", () => {
+    const forbidden =
+      /auditor accepts|official proof|the only way to get a consultation number|evidence of verification under EU VAT rules/i;
+    const offenders = SOURCES.filter((f) => forbidden.test(readFileSync(f, "utf8")));
+    expect(offenders).toEqual([]);
+  });
+});

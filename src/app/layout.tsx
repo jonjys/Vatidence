@@ -13,7 +13,7 @@ import "./globals.css";
 // do without deciding to trust it first.
 const TITLE = "VIESProof - bulk EU VAT checks with VIES consultation numbers";
 const DESCRIPTION =
-  "Check one EU VAT number free, instantly. Or verify a whole list and get every official VIES consultation number in a sealed PDF and CSV. No account.";
+  "Check one EU VAT number free, instantly. Or verify a whole list and get every VIES consultation number in a sealed PDF and CSV. No account.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
