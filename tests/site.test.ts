@@ -15,6 +15,7 @@ describe("resolveSiteUrl", () => {
   it("uses the canonical product origin on Vercel when APP_URL is unset", () => {
     expect(resolveSiteUrl(undefined, "production")).toBe("https://viesproof.eu");
     expect(resolveSiteUrl(undefined, "preview")).toBe("https://viesproof.eu");
+    expect(resolveSiteUrl(undefined, undefined, "1")).toBe("https://viesproof.eu");
   });
 
   it("refuses to ship localhost in Vercel metadata", () => {

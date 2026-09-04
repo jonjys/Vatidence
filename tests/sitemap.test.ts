@@ -1,38 +1,45 @@
 import { describe, expect, it } from "vitest";
+import { GET } from "@/app/sitemap.xml/route";
+import { CONTACT } from "@/lib/contact";
+import { SITEMAP_LASTMOD, sitemapUrls, sitemapXml } from "@/lib/sitemap";
 
-process.env.APP_URL = "https://viesproof.eu/";
-
-const { default: sitemap } = await import("@/app/sitemap");
 const { default: robots } = await import("@/app/robots");
 
 describe("sitemap", () => {
-  it("reports the same lastModified on every call", async () => {
-    // Regression: this used to be `new Date()`, so two fetches a second apart
-    // disagreed and every page looked freshly changed on each regeneration.
-    const a = sitemap();
-    await new Promise((r) => setTimeout(r, 5));
-    const b = sitemap();
-    expect(a.map((e) => e.lastModified)).toEqual(b.map((e) => e.lastModified));
-  });
-
-  it("dates the content, not the moment of the request", () => {
-    for (const entry of sitemap()) {
-      expect(String(entry.lastModified)).toMatch(/^\d{4}-\d{2}-\d{2}$/);
-    }
-  });
-
-  it("lists exactly the public pages, absolute and without a double slash", () => {
-    expect(sitemap().map((e) => e.url)).toEqual([
+  it("is pinned to the canonical product origin, not APP_URL or localhost", () => {
+    expect(sitemapUrls()).toEqual([
       "https://viesproof.eu/",
       "https://viesproof.eu/contact",
       "https://viesproof.eu/terms",
       "https://viesproof.eu/refunds",
       "https://viesproof.eu/privacy",
     ]);
+    expect(CONTACT.productUrl).toBe("https://viesproof.eu");
+  });
+
+  it("dates the content, not the moment of the request", () => {
+    expect(SITEMAP_LASTMOD).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+    expect(sitemapXml()).toContain(`<lastmod>${SITEMAP_LASTMOD}</lastmod>`);
+    expect(sitemapXml()).toBe(sitemapXml());
   });
 
   it("never lists an order page, whose token is the only thing protecting it", () => {
-    expect(sitemap().some((e) => e.url.includes("/r/"))).toBe(false);
+    expect(sitemapXml()).not.toContain("/r/");
+  });
+
+  it("never contains localhost, even if APP_URL is a loopback", () => {
+    expect(sitemapXml()).not.toMatch(/localhost|127\.0\.0\.1/i);
+  });
+
+  it("answers GET /sitemap.xml as XML without going through the metadata helper", async () => {
+    const res = GET();
+    expect(res.status).toBe(200);
+    expect(res.headers.get("content-type")).toMatch(/application\/xml/);
+    const body = await res.text();
+    expect(body).toMatch(/^<\?xml version="1.0" encoding="UTF-8"\?>/);
+    expect(body).toContain("<urlset");
+    expect(body).toContain("https://viesproof.eu/privacy");
+    expect(body).not.toContain("localhost");
   });
 });
 
@@ -46,5 +53,6 @@ describe("robots", () => {
     expect(disallow).toContain("/r/");
     expect(disallow).toContain("/api/");
     expect(r.sitemap).toBe("https://viesproof.eu/sitemap.xml");
+    expect(String(r.sitemap)).not.toContain("localhost");
   });
 });

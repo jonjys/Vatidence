@@ -1,5 +1,5 @@
 import type { MetadataRoute } from "next";
-import { siteUrl } from "@/lib/site";
+import { CONTACT } from "@/lib/contact";
 
 export default function robots(): MetadataRoute.Robots {
   return {
@@ -10,6 +10,6 @@ export default function robots(): MetadataRoute.Robots {
       // can read that order. They must never be crawled or indexed.
       disallow: ["/r/", "/api/"],
     },
-    sitemap: `${siteUrl}/sitemap.xml`,
+    sitemap: `${CONTACT.productUrl}/sitemap.xml`,
   };
 }
