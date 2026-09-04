@@ -1,4 +1,4 @@
-import { CONTACT, OPERATOR_LINE } from "@/lib/contact";
+import { CONTACT, OPERATOR_TAX_STATUS } from "@/lib/contact";
 import { env } from "@/lib/env";
 import { MINIMUM_ORDER_MINOR, formatMinor } from "@/lib/pricing";
 
@@ -60,7 +60,8 @@ export default function TermsPage() {
 
       <h2>7. Contact</h2>
       <p>
-        {CONTACT.product} is operated by {OPERATOR_LINE} (<a href={CONTACT.operatorUrl}>nyttolabs.com</a>).
+        {CONTACT.product} is operated by {CONTACT.operator} (<a href={CONTACT.operatorUrl}>nyttolabs.com</a>), a{" "}
+        {CONTACT.legalForm} operated by {CONTACT.operatedBy}. {OPERATOR_TAX_STATUS}
       </p>
       <ul>
         <li>
