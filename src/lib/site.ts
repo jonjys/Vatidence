@@ -11,9 +11,7 @@ import { CONTACT } from "@/lib/contact";
  * Vercel production *and* preview builds must never fall back to localhost:
  * that would ship loopback URLs in the canonical, OpenGraph, sitemap and robots
  * on a public hostname. If APP_URL is unset there, use the canonical product
- * origin instead. Sitemap XML does not use this module at all: it is pinned
- * to CONTACT.productUrl so a missing APP_URL cannot 500 the crawl file or
- * fill it with loopback URLs.
+ * origin instead. A local `next build` still uses localhost.
  */
 const LOOPBACK_HOST = /^(localhost|127\.0\.0\.1|\[::1\]|::1)$/i;
 
@@ -21,15 +19,10 @@ function shipsPublicly(vercelEnv: string | undefined): boolean {
   return vercelEnv === "production" || vercelEnv === "preview";
 }
 
-export function resolveSiteUrl(
-  appUrl: string | undefined,
-  vercelEnv: string | undefined,
-  vercelFlag?: string,
-): string {
-  const publicShip = shipsPublicly(vercelEnv) || vercelFlag === "1";
-  const fallback = publicShip ? CONTACT.productUrl : "http://localhost:3000";
+export function resolveSiteUrl(appUrl: string | undefined, vercelEnv: string | undefined): string {
+  const fallback = shipsPublicly(vercelEnv) ? CONTACT.productUrl : "http://localhost:3000";
   const raw = (appUrl ?? fallback).replace(/\/+$/, "");
-  if (publicShip) {
+  if (shipsPublicly(vercelEnv)) {
     let host: string;
     try {
       host = new URL(raw).hostname;
@@ -43,4 +36,4 @@ export function resolveSiteUrl(
   return raw;
 }
 
-export const siteUrl = resolveSiteUrl(process.env.APP_URL, process.env.VERCEL_ENV, process.env.VERCEL);
+export const siteUrl = resolveSiteUrl(process.env.APP_URL, process.env.VERCEL_ENV);
