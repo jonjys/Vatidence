@@ -21,7 +21,11 @@ function shipsPublicly(vercelEnv: string | undefined): boolean {
 
 export function resolveSiteUrl(appUrl: string | undefined, vercelEnv: string | undefined): string {
   const fallback = shipsPublicly(vercelEnv) ? CONTACT.productUrl : "http://localhost:3000";
-  const raw = (appUrl ?? fallback).replace(/\/+$/, "");
+  // `APP_URL=` with nothing after it is a realistic mistake in a .env file, and
+  // `??` does not catch it. Left as "", it reaches `new URL(siteUrl)` in the
+  // layout and fails the build with a bare "Invalid URL" naming nothing.
+  const given = appUrl?.trim();
+  const raw = (given === undefined || given === "" ? fallback : given).replace(/\/+$/, "");
   if (shipsPublicly(vercelEnv)) {
     let host: string;
     try {

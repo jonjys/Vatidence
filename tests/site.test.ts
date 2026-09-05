@@ -22,6 +22,15 @@ describe("resolveSiteUrl", () => {
     expect(() => resolveSiteUrl("http://127.0.0.1:3000", "preview")).toThrow(/localhost/);
   });
 
+  it("treats a blank APP_URL as unset rather than building an invalid URL", () => {
+    // `APP_URL=` in a .env file. Without this the empty string survives and
+    // `new URL(siteUrl)` in the layout dies with a bare "Invalid URL".
+    expect(resolveSiteUrl("", undefined)).toBe("http://localhost:3000");
+    expect(resolveSiteUrl("   ", undefined)).toBe("http://localhost:3000");
+    expect(resolveSiteUrl("", "production")).toBe("https://viesproof.eu");
+    expect(() => new URL(resolveSiteUrl("", undefined))).not.toThrow();
+  });
+
   it("keeps an explicit public APP_URL in production", () => {
     expect(resolveSiteUrl("https://viesproof.eu", "production")).toBe("https://viesproof.eu");
   });
