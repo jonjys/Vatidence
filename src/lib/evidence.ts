@@ -1,5 +1,5 @@
 import { PDFDocument, StandardFonts, rgb, type PDFFont, type PDFPage } from "pdf-lib";
-import { CONTACT, OPERATOR_LINE } from "@/lib/contact";
+import { CONTACT, OPERATOR_IDENTITY } from "@/lib/contact";
 import { sha256Hex } from "@/lib/ids";
 import type { Order, OrderItem } from "@/lib/types";
 
@@ -240,7 +240,7 @@ export async function toPdf(doc: EvidenceDocument, generatedAt: Date): Promise<U
     // and where to write about it, without still having the order email.
     page.drawText(
       winAnsi(
-        `${CONTACT.product} - ${CONTACT.productUrl} - operated by ${OPERATOR_LINE} - ${CONTACT.email.support}`,
+        `${CONTACT.product} - ${CONTACT.productUrl} - ${OPERATOR_IDENTITY} - ${CONTACT.email.support}`,
       ),
       { x: MARGIN, y: MARGIN - 34, size: 7, font, color: rgb(0.5, 0.5, 0.55) },
     );

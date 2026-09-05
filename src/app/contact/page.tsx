@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { CONTACT, OPERATOR_LINE } from "@/lib/contact";
+import { CONTACT, OPERATOR_LINE, OPERATOR_TAX_STATUS } from "@/lib/contact";
 
 export const dynamic = "force-static";
 
@@ -59,7 +59,11 @@ export default function ContactPage() {
       <p>
         {CONTACT.operator} — <a href={CONTACT.operatorUrl}>nyttolabs.com</a>
         <br />
+        Operated by {CONTACT.operatedBy}
+        <br />
         {CONTACT.country}
+        <br />
+        {OPERATOR_TAX_STATUS}
       </p>
       <p className="hint">
         Include the order URL whenever you have one. It is the only thing that identifies an order, and it lets a
