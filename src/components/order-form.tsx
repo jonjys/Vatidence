@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
+import { payBlockedHint, payCtaLabel } from "@/lib/checkout-copy";
 import { CHECKOUT_NETWORK, CHECKOUT_NOT_STARTED, checkoutErrorMessage, readJsonBody } from "@/lib/checkout-error";
 import { CONTACT, OPERATOR_TAX_STATUS } from "@/lib/contact";
 import { exampleVatListText } from "@/lib/demo-vats";
@@ -29,6 +30,7 @@ export function OrderForm({ seed }: { seed?: OrderFormSeed | null } = {}) {
   const [relist, setRelist] = useState<Relist | null>(null);
   const [seedNotice, setSeedNotice] = useState<string | null>(null);
   const [exampleLoaded, setExampleLoaded] = useState(false);
+  const [canceled, setCanceled] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
   const relistDone = useRef(false);
 
@@ -39,7 +41,10 @@ export function OrderForm({ seed }: { seed?: OrderFormSeed | null } = {}) {
     if (relistDone.current) return;
     relistDone.current = true;
 
-    const token = new URLSearchParams(window.location.search).get("relist");
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("canceled") === "1") setCanceled(true);
+
+    const token = params.get("relist");
     if (!token || !/^[A-Za-z0-9_-]{6,64}$/.test(token)) return;
 
     setRelist({ state: "loading" });
@@ -90,7 +95,11 @@ export function OrderForm({ seed }: { seed?: OrderFormSeed | null } = {}) {
   const requester = useMemo(() => (requesterVat.trim() ? parseVat(requesterVat) : null), [requesterVat]);
 
   const priced = parsed.items.length > 0 ? quote(parsed.items.length) : null;
-  const ready = parsed.items.length > 0 && requester?.ok === true && !busy;
+  const requesterOk = requester?.ok === true;
+  const hasBillableItems = parsed.items.length > 0;
+  const ready = hasBillableItems && requesterOk && !busy;
+  const blockedHint = busy ? null : payBlockedHint({ hasBillableItems, requesterOk });
+  const ctaLabel = payCtaLabel({ busy, hasBillableItems, requesterOk });
   const showingExample = exampleLoaded && list.trim() === EXAMPLE_TEXT;
 
   async function onFile(file: File) {
@@ -172,6 +181,12 @@ export function OrderForm({ seed }: { seed?: OrderFormSeed | null } = {}) {
       ) : null}
       {relist?.state === "gone" ? (
         <p className="hint">That previous order is no longer available, so the list could not be loaded.</p>
+      ) : null}
+      {canceled ? (
+        <p className="notice">
+          Checkout was cancelled. Nothing was charged. Your list is below — enter your own VAT number and pay when you
+          are ready.
+        </p>
       ) : null}
       {seedNotice ? <p className="notice">{seedNotice}</p> : null}
 
@@ -288,6 +303,14 @@ export function OrderForm({ seed }: { seed?: OrderFormSeed | null } = {}) {
         </p>
       ) : null}
 
+      <ul className="pay-needs">
+        <li>Your own EU VAT number — required, or VIES issues no consultation number</li>
+        <li>From {formatMinor(MINIMUM_ORDER_MINOR)}, one-off — even for a single number</li>
+        <li>
+          <Link href="/refunds">Unanswered rows refunded automatically</Link>
+        </li>
+      </ul>
+
       <div className="payrow">
         <div className="pay-price">
           <div className="price">{priced ? formatMinor(priced.totalMinor) : `from ${formatMinor(MINIMUM_ORDER_MINOR)}`}</div>
@@ -296,9 +319,10 @@ export function OrderForm({ seed }: { seed?: OrderFormSeed | null } = {}) {
           </div>
         </div>
         <button type="button" className="pay-cta" onClick={() => void submit()} disabled={!ready}>
-          {busy ? "Opening checkout…" : "Pay and verify"}
+          {ctaLabel}
         </button>
       </div>
+      {blockedHint ? <p className="hint pay-block">{blockedHint}</p> : null}
       <p className="trust">
         <a href={CONTACT.operatorUrl} rel="noopener">
           {CONTACT.operator}
@@ -306,7 +330,7 @@ export function OrderForm({ seed }: { seed?: OrderFormSeed | null } = {}) {
         {" · "}
         {TAX_STATUS_LINE}
         {" · "}
-        <Link href="/refunds">unanswered rows refunded automatically</Link>
+        <Link href="/refunds">Refund policy</Link>
       </p>
     </div>
   );

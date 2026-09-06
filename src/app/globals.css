@@ -45,7 +45,7 @@ h1 {
   letter-spacing: -0.025em;
   font-weight: 650;
   margin: 0 0 14px;
-  max-width: 20ch;
+  max-width: 28ch;
   text-wrap: balance;
 }
 h2 {
@@ -72,9 +72,27 @@ code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0
 .masthead {
   display: flex;
   align-items: baseline;
+  justify-content: space-between;
   gap: 10px;
   padding: 20px 0 26px;
 }
+.brand {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.langswitch {
+  font-size: 12px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+.langswitch a {
+  color: var(--muted);
+  text-decoration: none;
+  font-weight: 650;
+}
+.langswitch a:hover { color: var(--accent); }
 .wordmark {
   font-size: 15px;
   font-weight: 700;
@@ -92,6 +110,13 @@ code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0
 
 /* --- hero ----------------------------------------------------------- */
 .hero { padding-bottom: 0; }
+.audience {
+  color: var(--ink);
+  font-size: 14px;
+  line-height: 1.5;
+  max-width: 54ch;
+  margin: 0 0 22px;
+}
 
 .specs {
   display: flex;
@@ -207,6 +232,17 @@ button.ghost:hover { border-color: var(--accent); }
 }
 .trust a { color: var(--muted); }
 .trust a:hover { color: var(--accent); }
+.pay-needs {
+  margin: 16px 0 0;
+  padding: 10px 12px 10px 28px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--bg);
+  font-size: 13px;
+  color: var(--muted);
+}
+.pay-needs li { margin: 4px 0; }
+.pay-block { margin-top: 10px; }
 
 @media (max-width: 520px) {
   .payrow {
@@ -349,4 +385,22 @@ button.link:disabled { color: var(--muted); cursor: default; }
   margin: 10px 0 0;
   font-size: 12.5px;
   color: var(--muted);
+}
+
+.faq details {
+  border-bottom: 1px solid var(--line);
+  padding: 10px 0;
+}
+.faq summary {
+  cursor: pointer;
+  font-weight: 650;
+  font-size: 14.5px;
+  list-style-position: outside;
+}
+.faq summary:hover { color: var(--accent); }
+.faq details p {
+  margin: 8px 0 4px;
+  color: var(--muted);
+  font-size: 14px;
+  max-width: 58ch;
 }

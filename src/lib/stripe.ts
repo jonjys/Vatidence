@@ -1,4 +1,5 @@
 import Stripe from "stripe";
+import { checkoutCancelUrl } from "@/lib/checkout-copy";
 import { CONTACT } from "@/lib/contact";
 import { env } from "@/lib/env";
 import type { RefundGateway } from "@/lib/refunds";
@@ -114,7 +115,10 @@ function checkoutParams(input: CheckoutInput): Stripe.Checkout.SessionCreatePara
       ? { automatic_tax: { enabled: true }, tax_id_collection: { enabled: true } }
       : {}),
     success_url: `${resultUrl}?paid=1&session_id={CHECKOUT_SESSION_ID}`,
-    cancel_url: `${resultUrl}?canceled=1`,
+    // Back to the form with the same list, not a dead-end result page.
+    // A cancelled first checkout is the order that never happens if they
+    // have to rebuild the list by hand.
+    cancel_url: checkoutCancelUrl(config.APP_URL, input.publicToken),
     expires_at: Math.floor(Date.now() / 1000) + 60 * 60, // 1h, Stripe's minimum window is 30m
     custom_text: {
       submit: {

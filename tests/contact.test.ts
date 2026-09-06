@@ -92,6 +92,7 @@ describe("published claims", () => {
     expect(form).toContain("CONTACT.operator");
     expect(form).toContain("OPERATOR_TAX_STATUS");
     expect(form).toContain("/refunds");
+    expect(form).toMatch(/Refund policy|unanswered rows refunded/i);
   });
 
   it("puts the operator person and F-tax status on the terms and contact pages", () => {

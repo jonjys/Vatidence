@@ -1,8 +1,15 @@
+import type { Metadata } from "next";
 import { CONTACT, OPERATOR_TAX_STATUS } from "@/lib/contact";
 import { env } from "@/lib/env";
 import { MINIMUM_ORDER_MINOR, formatMinor } from "@/lib/pricing";
 
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = {
+  title: "Terms of service",
+  description: "One-off VIES verification. No subscription. Minimum order €4.90. Unanswered rows refunded.",
+  alternates: { canonical: "/terms" },
+};
 
 export default function TermsPage() {
   const config = env();

@@ -20,6 +20,9 @@ describe("free-to-paid handoff", () => {
     expect(form).toContain("formatLiveQuoteHint");
     expect(form).toContain("minimumFloorExplanation");
     expect(form).toContain("billable");
+    expect(form).toContain("pay-needs");
+    expect(form).toContain("payCtaLabel");
+    expect(form).toContain("payBlockedHint");
   });
 
   it("lands the free-check number in the batch and scrolls to the order form", () => {
@@ -39,5 +42,14 @@ describe("free-to-paid handoff", () => {
     expect(form).toContain("checkoutErrorMessage");
     expect(form).toContain("CHECKOUT_NETWORK");
     expect(form).toContain("readJsonBody");
+  });
+
+  it("returns a cancelled checkout to the form with the list, not a dead result page", () => {
+    const stripe = readFileSync("src/lib/stripe.ts", "utf8");
+    const result = readFileSync("src/app/r/[token]/page.tsx", "utf8");
+    expect(stripe).toContain("checkoutCancelUrl");
+    expect(form).toContain("canceled");
+    expect(result).toContain("Return to the form with this list");
+    expect(result).toContain("relist");
   });
 });
