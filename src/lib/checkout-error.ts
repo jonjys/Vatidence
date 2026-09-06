@@ -31,7 +31,9 @@ export function checkoutErrorMessage(status: number, body: unknown): string {
     return fromBody ?? "Too many orders from this address. Try again shortly.";
   }
   if (status === 503) {
-    return fromBody && !isGenericCheckoutFailure(fromBody) ? fromBody : CHECKOUT_UNAVAILABLE;
+    // Always the checkout wording: the shared 503 from guard() is also used
+    // by the free check and does not mention payment.
+    return CHECKOUT_UNAVAILABLE;
   }
   if (status >= 500) {
     return CHECKOUT_NOT_STARTED;
@@ -47,8 +49,4 @@ export async function readJsonBody(res: Response): Promise<unknown> {
   } catch {
     return null;
   }
-}
-
-function isGenericCheckoutFailure(message: string): boolean {
-  return /could not start checkout/i.test(message);
 }

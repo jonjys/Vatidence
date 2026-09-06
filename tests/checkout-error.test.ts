@@ -19,7 +19,7 @@ describe("checkoutErrorMessage", () => {
   it("says nothing was charged on a 503", () => {
     expect(checkoutErrorMessage(503, null)).toBe(CHECKOUT_UNAVAILABLE);
     expect(checkoutErrorMessage(503, { message: "The service is temporarily unavailable. Please try again." })).toBe(
-      "The service is temporarily unavailable. Please try again.",
+      CHECKOUT_UNAVAILABLE,
     );
   });
 
