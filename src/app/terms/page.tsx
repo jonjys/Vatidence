@@ -1,8 +1,15 @@
+import type { Metadata } from "next";
 import { CONTACT, OPERATOR_TAX_STATUS } from "@/lib/contact";
 import { env } from "@/lib/env";
 import { MINIMUM_ORDER_MINOR, formatMinor } from "@/lib/pricing";
 
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = {
+  title: "Terms of service",
+  description: "One-off VIES verification. No subscription. Minimum order €4.90. Unanswered rows refunded.",
+  alternates: { canonical: "/terms" },
+};
 
 export default function TermsPage() {
   const config = env();
@@ -14,7 +21,7 @@ export default function TermsPage() {
       <h2>1. What is sold</h2>
       <p>
         A one-off batch verification of EU VAT identification numbers against the European Commission&apos;s VIES
-        service, delivered as a PDF evidence pack and a CSV file. Each order is a single purchase. There is no
+        service, delivered as a PDF and a CSV of the answers VIES returned. Each order is a single purchase. There is no
         subscription, no account and no recurring charge.
       </p>
 

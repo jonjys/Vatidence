@@ -2,11 +2,13 @@
 
 import Link from "next/link";
 import { useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
+import { floorFillHint, payBlockedHint, payCtaLabel, stripeChargeNotice } from "@/lib/checkout-copy";
 import { CHECKOUT_NETWORK, CHECKOUT_NOT_STARTED, checkoutErrorMessage, readJsonBody } from "@/lib/checkout-error";
 import { CONTACT, OPERATOR_TAX_STATUS } from "@/lib/contact";
 import { exampleVatListText } from "@/lib/demo-vats";
 import { MAX_ROWS, MAX_UPLOAD_BYTES } from "@/lib/limits";
 import { MINIMUM_ORDER_MINOR, formatLiveQuoteHint, formatMinor, minimumFloorExplanation, quote } from "@/lib/pricing";
+import { readRememberedRequesterVat, rememberRequesterVat } from "@/lib/requester-memory";
 import { parseVat, parseVatList } from "@/lib/vat";
 
 type ApiOk = { checkoutUrl: string; resultUrl: string };
@@ -29,6 +31,7 @@ export function OrderForm({ seed }: { seed?: OrderFormSeed | null } = {}) {
   const [relist, setRelist] = useState<Relist | null>(null);
   const [seedNotice, setSeedNotice] = useState<string | null>(null);
   const [exampleLoaded, setExampleLoaded] = useState(false);
+  const [canceled, setCanceled] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
   const relistDone = useRef(false);
 
@@ -39,7 +42,10 @@ export function OrderForm({ seed }: { seed?: OrderFormSeed | null } = {}) {
     if (relistDone.current) return;
     relistDone.current = true;
 
-    const token = new URLSearchParams(window.location.search).get("relist");
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("canceled") === "1") setCanceled(true);
+
+    const token = params.get("relist");
     if (!token || !/^[A-Za-z0-9_-]{6,64}$/.test(token)) return;
 
     setRelist({ state: "loading" });
@@ -78,10 +84,24 @@ export function OrderForm({ seed }: { seed?: OrderFormSeed | null } = {}) {
       if (already) return prev;
       return prev.trim() ? `${prev.trimEnd()}\n${seed.vatNumber}` : seed.vatNumber;
     });
-    setSeedNotice(`Added ${seed.vatNumber} from your free check. Enter your own VAT number to pay.`);
+    setSeedNotice(
+      `Added ${seed.vatNumber} from the free check (yes/no only). Enter your own VAT so VIES can issue a consultation number — it is not billed as a row. One number is ${formatMinor(MINIMUM_ORDER_MINOR)}.`,
+    );
     setExampleLoaded(false);
     document.getElementById("order")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    window.setTimeout(() => {
+      const el = document.getElementById("requester");
+      if (el instanceof HTMLInputElement && !el.value.trim()) el.focus();
+    }, 300);
   }, [seed]);
+
+  // People who open Stripe and back out should not re-type the requester VAT.
+  // Restore only if the field is still empty after a relist attempt.
+  useEffect(() => {
+    const remembered = readRememberedRequesterVat(window.localStorage);
+    if (!remembered) return;
+    setRequesterVat((prev) => (prev.trim() ? prev : remembered));
+  }, []);
 
   // Parsing runs on the exact same module the server uses, so what the customer
   // is quoted is what the server will charge.
@@ -89,8 +109,22 @@ export function OrderForm({ seed }: { seed?: OrderFormSeed | null } = {}) {
   const parsed = useMemo(() => parseVatList(deferredList, MAX_ROWS), [deferredList]);
   const requester = useMemo(() => (requesterVat.trim() ? parseVat(requesterVat) : null), [requesterVat]);
 
+  useEffect(() => {
+    if (requester?.ok) rememberRequesterVat(window.localStorage, requester.value.canonical);
+  }, [requester]);
+
   const priced = parsed.items.length > 0 ? quote(parsed.items.length) : null;
-  const ready = parsed.items.length > 0 && requester?.ok === true && !busy;
+  const requesterOk = requester?.ok === true;
+  const hasBillableItems = parsed.items.length > 0;
+  const ready = hasBillableItems && requesterOk && !busy;
+  const blockedHint = busy ? null : payBlockedHint({ hasBillableItems, requesterOk });
+  const ctaLabel = payCtaLabel({
+    busy,
+    hasBillableItems,
+    requesterOk,
+    totalMinor: priced?.totalMinor,
+    minimumApplied: priced?.minimumApplied,
+  });
   const showingExample = exampleLoaded && list.trim() === EXAMPLE_TEXT;
 
   async function onFile(file: File) {
@@ -160,8 +194,11 @@ export function OrderForm({ seed }: { seed?: OrderFormSeed | null } = {}) {
 
   return (
     <div className="panel" id="order">
-      <p className="card-title">Start a verification</p>
-      <p className="card-sub">Paste your list, see the price, pay once. Nothing is charged until you confirm.</p>
+      <p className="card-title">Pay for consultation numbers</p>
+      <p className="card-sub">
+        The free check is a yes/no. This step asks VIES for a consultation number on each row. Minimum{" "}
+        {formatMinor(MINIMUM_ORDER_MINOR)}, even for one number. Nothing is charged until you confirm on Stripe.
+      </p>
 
       {relist?.state === "loading" ? <p className="hint">Loading your previous list…</p> : null}
       {relist?.state === "ready" ? (
@@ -173,22 +210,30 @@ export function OrderForm({ seed }: { seed?: OrderFormSeed | null } = {}) {
       {relist?.state === "gone" ? (
         <p className="hint">That previous order is no longer available, so the list could not be loaded.</p>
       ) : null}
+      {canceled ? (
+        <p className="notice">
+          Checkout was cancelled. Nothing was charged.
+          {relist?.state === "ready"
+            ? " Your list is below — enter your own VAT number and pay when you are ready."
+            : " Enter your own VAT number and the numbers to verify when you are ready."}
+        </p>
+      ) : null}
       {seedNotice ? <p className="notice">{seedNotice}</p> : null}
 
       <div className="field">
-        <label htmlFor="requester">Your own EU VAT number</label>
+        <label htmlFor="requester">Your own EU VAT number — requester, not billed</label>
         <input
           id="requester"
           type="text"
-          autoComplete="off"
+          autoComplete="organization"
           spellCheck={false}
           placeholder="SE556036079301"
           value={requesterVat}
           onChange={(e) => setRequesterVat(e.target.value)}
         />
         <p className="hint">
-          Required. VIES only issues a consultation number when the requester identifies itself — this is what turns a
-          lookup into evidence.
+          VIES issues a consultation number only when the requester identifies itself. This is sent to the Commission —
+          it is not added to the list you pay for, and it is not a billed row.
         </p>
         {requesterVat.trim() && requester && !requester.ok ? (
           <p className="error" style={{ marginTop: 8 }}>
@@ -288,6 +333,19 @@ export function OrderForm({ seed }: { seed?: OrderFormSeed | null } = {}) {
         </p>
       ) : null}
 
+      <ul className="pay-needs">
+        <li>Your own EU VAT number — required for consultation numbers, not billed as a row</li>
+        <li>
+          {formatMinor(MINIMUM_ORDER_MINOR)} minimum, even for one number — the €0.39 rate applies once a batch covers
+          that floor (13 numbers)
+        </li>
+        <li>
+          <Link href="/refunds">Unanswered rows refunded automatically</Link>
+        </li>
+      </ul>
+      {priced ? <p className="notice pay-charge">{stripeChargeNotice(priced)}</p> : null}
+      {priced && floorFillHint(priced) ? <p className="hint floor-fill">{floorFillHint(priced)}</p> : null}
+
       <div className="payrow">
         <div className="pay-price">
           <div className="price">{priced ? formatMinor(priced.totalMinor) : `from ${formatMinor(MINIMUM_ORDER_MINOR)}`}</div>
@@ -296,9 +354,10 @@ export function OrderForm({ seed }: { seed?: OrderFormSeed | null } = {}) {
           </div>
         </div>
         <button type="button" className="pay-cta" onClick={() => void submit()} disabled={!ready}>
-          {busy ? "Opening checkout…" : "Pay and verify"}
+          {ctaLabel}
         </button>
       </div>
+      {blockedHint ? <p className="hint pay-block">{blockedHint}</p> : null}
       <p className="trust">
         <a href={CONTACT.operatorUrl} rel="noopener">
           {CONTACT.operator}
@@ -306,7 +365,7 @@ export function OrderForm({ seed }: { seed?: OrderFormSeed | null } = {}) {
         {" · "}
         {TAX_STATUS_LINE}
         {" · "}
-        <Link href="/refunds">unanswered rows refunded automatically</Link>
+        <Link href="/refunds">Refund policy</Link>
       </p>
     </div>
   );

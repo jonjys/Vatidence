@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ResultLive, type StatusPayload } from "@/components/result-live";
 import { errorMessage, log } from "@/lib/log";
@@ -79,8 +80,14 @@ export default async function ResultPage({
         {order.requesterVat === "(purged)" ? "" : order.requesterVat}
       </p>
 
-      {canceled && order.status === "awaiting_payment" ? (
-        <p className="notice">Checkout was cancelled, so nothing was charged and nothing was verified.</p>
+      {order.status === "awaiting_payment" ? (
+        <p className="notice">
+          {canceled
+            ? "Checkout was cancelled, so nothing was charged and nothing was verified. "
+            : "This order is waiting for payment. "}
+          <Link href={`/?relist=${encodeURIComponent(token)}`}>Return to the form with this list</Link> to pay. Nothing
+          is charged until you confirm on Stripe.
+        </p>
       ) : null}
 
       {order.purgedAt ? (

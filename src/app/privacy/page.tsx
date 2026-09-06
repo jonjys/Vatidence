@@ -1,7 +1,14 @@
+import type { Metadata } from "next";
 import { CONTACT, OPERATOR_IDENTITY } from "@/lib/contact";
 import { env } from "@/lib/env";
 
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = {
+  title: "Privacy",
+  description: "No accounts, no tracking cookies, no card details stored here. VAT numbers are erased after the retention window.",
+  alternates: { canonical: "/privacy" },
+};
 
 export default function PrivacyPage() {
   const config = env();

@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   MINIMUM_ORDER_MINOR,
   TIERS,
+  extraNumbersCoveredByMinimum,
   firstCountWithoutMinimum,
   formatLiveQuoteHint,
   formatMinor,
@@ -64,6 +65,9 @@ describe("minimum floor copy", () => {
     expect(firstCountWithoutMinimum()).toBe(13);
     expect(quote(12).minimumApplied).toBe(true);
     expect(quote(13).minimumApplied).toBe(false);
+    expect(extraNumbersCoveredByMinimum(1)).toBe(11);
+    expect(extraNumbersCoveredByMinimum(12)).toBe(0);
+    expect(extraNumbersCoveredByMinimum(13)).toBe(0);
   });
 
   it("says an 11-row batch pays the floor, not €0.39 each", () => {

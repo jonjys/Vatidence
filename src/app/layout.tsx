@@ -11,15 +11,18 @@ import "./globals.css";
 // from a snippet written before the free check existed. The snippet is the
 // only advertisement this site has; it should lead with the thing anyone can
 // do without deciding to trust it first.
-const TITLE = "VIESProof - bulk EU VAT checks with VIES consultation numbers";
+const TITLE = "VIESProof - VIES consultation numbers for accountants";
 const DESCRIPTION =
-  "Check one EU VAT number free, instantly. Or verify a whole list and get every VIES consultation number in a sealed PDF and CSV. No account.";
+  "Check one EU VAT number free. Pay from €4.90 for VIES consultation numbers in a PDF and CSV. For accountants, bookkeepers and exporters — not tax advice.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: TITLE,
   description: DESCRIPTION,
-  alternates: { canonical: "/" },
+  alternates: {
+    canonical: "/",
+    languages: { en: "/", sv: "/sv" },
+  },
   robots: { index: true, follow: true },
   // Google Search Console ownership proof. Not a secret - it is served in the
   // page HTML by design, and only proves control of this domain.
@@ -41,15 +44,29 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
         <main>
           <header className="masthead">
-            <Link href="/" className="wordmark">
-              VIES<span>Proof</span>
-            </Link>
-            <span className="kicker">EU VAT verification</span>
+            <div className="brand">
+              <Link href="/" className="wordmark">
+                VIES<span>Proof</span>
+              </Link>
+              <span className="kicker">EU VAT verification</span>
+            </div>
+            <nav className="langswitch" aria-label="Language">
+              <Link href="/" hrefLang="en" lang="en">
+                EN
+              </Link>
+              <span aria-hidden="true">·</span>
+              <Link href="/sv" hrefLang="sv" lang="sv">
+                SV
+              </Link>
+            </nav>
           </header>
           {children}
           <footer>
             <div className="footlinks">
               <Link href="/">Home</Link>
+              <Link href="/sv" hrefLang="sv" lang="sv">
+                Svenska
+              </Link>
               <Link href="/contact">Contact</Link>
               <Link href="/terms">Terms</Link>
               <Link href="/refunds">Refunds</Link>

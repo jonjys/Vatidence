@@ -18,7 +18,20 @@ const HOME_LAST_MODIFIED = "2026-09-06";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   return [
-    { url: `${siteUrl}/`, lastModified: HOME_LAST_MODIFIED, changeFrequency: "monthly", priority: 1 },
+    {
+      url: `${siteUrl}/`,
+      lastModified: HOME_LAST_MODIFIED,
+      changeFrequency: "monthly",
+      priority: 1,
+      alternates: { languages: { en: `${siteUrl}/`, sv: `${siteUrl}/sv` } },
+    },
+    {
+      url: `${siteUrl}/sv`,
+      lastModified: HOME_LAST_MODIFIED,
+      changeFrequency: "monthly",
+      priority: 0.8,
+      alternates: { languages: { en: `${siteUrl}/`, sv: `${siteUrl}/sv` } },
+    },
     { url: `${siteUrl}/contact`, lastModified: LEGAL_LAST_MODIFIED, changeFrequency: "yearly", priority: 0.4 },
     { url: `${siteUrl}/terms`, lastModified: LEGAL_LAST_MODIFIED, changeFrequency: "yearly", priority: 0.3 },
     { url: `${siteUrl}/refunds`, lastModified: LEGAL_LAST_MODIFIED, changeFrequency: "yearly", priority: 0.3 },

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { MINIMUM_ORDER_MINOR, formatMinor } from "@/lib/pricing";
+import { MINIMUM_ORDER_MINOR, firstCountWithoutMinimum, formatMinor } from "@/lib/pricing";
 import { parseVat } from "@/lib/vat";
 
 type CheckOk = {
@@ -90,15 +90,19 @@ export function FreeCheck({ onEscalate }: { onEscalate: (vatNumber: string) => v
           */}
           <div className="gap">
             <p>
-              <strong>This answer carries no consultation number.</strong> VIES issues one only when the requester
-              gives their own VAT number, and that identifier records who checked, which number, and when.
+              <strong>The yes/no above is complete, and it is free.</strong>{" "}
+              Pay only if you need the consultation number. VIES issues that identifier only when the requester sends
+              their own VAT number — who checked, which number, and when. That is the paid product. It is not an extra
+              legal stamp, and it is not tax advice.
             </p>
             <p className="escalate-note">
-              Next step is a paid verification so VIES can issue a consultation number. {result.vatNumber} will be added
-              to the list below.
+              One number is {formatMinor(MINIMUM_ORDER_MINOR)} (the minimum), not €0.39. The same{" "}
+              {formatMinor(MINIMUM_ORDER_MINOR)} covers up to {firstCountWithoutMinimum() - 1} numbers.{" "}
+              {result.vatNumber} will be added to the list below. You still need to enter your own VAT — it is sent to
+              VIES as the requester, not billed as a row.
             </p>
             <button type="button" className="escalate" onClick={() => onEscalate(result.vatNumber)}>
-              Start a paid verification — from {formatMinor(MINIMUM_ORDER_MINOR)}
+              Get the consultation number — {formatMinor(MINIMUM_ORDER_MINOR)} for this number
             </button>
           </div>
         </div>

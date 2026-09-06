@@ -1,6 +1,13 @@
+import type { Metadata } from "next";
 import { CONTACT } from "@/lib/contact";
 
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = {
+  title: "Refund policy",
+  description: "Billed per answered VAT number. Rows VIES cannot answer are refunded automatically, including the minimum-order share.",
+  alternates: { canonical: "/refunds" },
+};
 
 export default function RefundsPage() {
   return (

@@ -6,7 +6,8 @@ import { OrderForm } from "@/components/order-form";
 
 /**
  * The free check and the paid batch are one flow, not two products: the free
- * answer hands its number straight to the batch that can prove it.
+ * answer hands its number straight to the batch that can request a consultation
+ * number.
  */
 export function HomeInteractive() {
   const [seed, setSeed] = useState<{ vatNumber: string; at: number } | null>(null);

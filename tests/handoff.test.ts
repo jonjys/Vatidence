@@ -9,8 +9,11 @@ describe("free-to-paid handoff", () => {
     expect(free).toContain('className="escalate"');
     expect(free).not.toMatch(/className="link"/);
     expect(free).toContain("MINIMUM_ORDER_MINOR");
-    expect(free).toMatch(/Start a paid verification/);
-    expect(free).toMatch(/Next step is a paid verification/);
+    expect(free).toMatch(/Get the consultation number/);
+    expect(free).toMatch(/The yes\/no above is complete/);
+    expect(free).toMatch(/Pay only if you need the consultation number/);
+    expect(free).toMatch(/not €0\.39/);
+    expect(free).not.toMatch(/official proof|evidence pack/i);
   });
 
   it("makes the €4.90 floor obvious next to the live price and the published table", () => {
@@ -20,6 +23,14 @@ describe("free-to-paid handoff", () => {
     expect(form).toContain("formatLiveQuoteHint");
     expect(form).toContain("minimumFloorExplanation");
     expect(form).toContain("billable");
+    expect(form).toContain("pay-needs");
+    expect(form).toContain("payCtaLabel");
+    expect(form).toContain("payBlockedHint");
+    expect(form).toContain("stripeChargeNotice");
+    expect(form).toContain("floorFillHint");
+    expect(form).toContain("readRememberedRequesterVat");
+    expect(form).toMatch(/not billed as a row/);
+    expect(form).toMatch(/requester, not billed/);
   });
 
   it("lands the free-check number in the batch and scrolls to the order form", () => {
@@ -39,5 +50,14 @@ describe("free-to-paid handoff", () => {
     expect(form).toContain("checkoutErrorMessage");
     expect(form).toContain("CHECKOUT_NETWORK");
     expect(form).toContain("readJsonBody");
+  });
+
+  it("returns a cancelled checkout to the form with the list, not a dead result page", () => {
+    const stripe = readFileSync("src/lib/stripe.ts", "utf8");
+    const result = readFileSync("src/app/r/[token]/page.tsx", "utf8");
+    expect(stripe).toContain("checkoutCancelUrl");
+    expect(form).toContain("canceled");
+    expect(result).toContain("Return to the form with this list");
+    expect(result).toContain("relist");
   });
 });
