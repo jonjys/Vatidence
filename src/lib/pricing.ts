@@ -98,6 +98,19 @@ export function firstCountWithoutMinimum(): number {
 }
 
 /**
+ * How many more numbers still fit under the current minimum (0 once the floor
+ * is covered, or at the last count that still pays it). A one-number €4.90
+ * session is the usual unpaid bounce — this is the honest reason to paste
+ * the rest of the list before opening Stripe.
+ */
+export function extraNumbersCoveredByMinimum(itemCount: number): number {
+  if (!Number.isInteger(itemCount) || itemCount <= 0) return 0;
+  const lastOnFloor = firstCountWithoutMinimum() - 1;
+  if (itemCount >= lastOnFloor) return 0;
+  return lastOnFloor - itemCount;
+}
+
+/**
  * Why a small batch is not €0.39 × N. Used next to the homepage table and
  * the live quote so the €4.90 floor is visible before Pay.
  */

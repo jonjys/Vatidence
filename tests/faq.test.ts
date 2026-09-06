@@ -9,6 +9,8 @@ describe("FAQ copy", () => {
     expect(en).toMatch(/consultation number/i);
     expect(en).toMatch(/own EU VAT number/);
     expect(en).toMatch(/minimum order/i);
+    expect(en).toMatch(/only have one number/i);
+    expect(en).toMatch(/free check does not/i);
     expect(en).toMatch(/not valid/i);
     expect(en).toMatch(/member state cannot answer/i);
     expect(en).toMatch(/account/i);

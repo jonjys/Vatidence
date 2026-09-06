@@ -7,7 +7,14 @@
  * amount, and that the free yes/no is already finished, before they leave.
  */
 
-import { MINIMUM_ORDER_MINOR, TIERS, firstCountWithoutMinimum, formatMinor, type Quote } from "@/lib/pricing";
+import {
+  MINIMUM_ORDER_MINOR,
+  TIERS,
+  extraNumbersCoveredByMinimum,
+  firstCountWithoutMinimum,
+  formatMinor,
+  type Quote,
+} from "@/lib/pricing";
 
 export function payCtaLabel(input: {
   busy: boolean;
@@ -50,6 +57,22 @@ export function stripeChargeNotice(q: Quote): string {
     return `Stripe will charge ${formatMinor(q.totalMinor)} for ${q.itemCount} number${q.itemCount === 1 ? "" : "s"} — the ${formatMinor(MINIMUM_ORDER_MINOR)} minimum, not ${formatMinor(q.subtotalMinor)} at the ${tier} tier.`;
   }
   return `Stripe will charge ${formatMinor(q.totalMinor)} for ${q.itemCount} numbers. One-off.`;
+}
+
+/**
+ * Live €4.90 sessions expire unpaid. The usual list is 1–12 numbers; saying
+ * the same charge already covers the rest of a small period-end list is the
+ * last useful sentence before they leave for Stripe.
+ */
+export function floorFillHint(q: Quote): string | null {
+  if (!q.minimumApplied) return null;
+  const extra = extraNumbersCoveredByMinimum(q.itemCount);
+  const floor = formatMinor(MINIMUM_ORDER_MINOR);
+  const lastOnFloor = firstCountWithoutMinimum() - 1;
+  if (extra === 0) {
+    return `${floor} already covers up to ${lastOnFloor} numbers. One more leaves the minimum.`;
+  }
+  return `This same ${floor} already covers up to ${lastOnFloor} numbers. Add ${extra} more and you still pay ${floor}.`;
 }
 
 export function checkoutProductDescription(itemCount: number, amountMinor: number): string {

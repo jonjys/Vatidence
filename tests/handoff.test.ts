@@ -11,6 +11,7 @@ describe("free-to-paid handoff", () => {
     expect(free).toContain("MINIMUM_ORDER_MINOR");
     expect(free).toMatch(/Get the consultation number/);
     expect(free).toMatch(/The yes\/no above is complete/);
+    expect(free).toMatch(/Pay only if you need the consultation number/);
     expect(free).toMatch(/not €0\.39/);
     expect(free).not.toMatch(/official proof|evidence pack/i);
   });
@@ -26,7 +27,10 @@ describe("free-to-paid handoff", () => {
     expect(form).toContain("payCtaLabel");
     expect(form).toContain("payBlockedHint");
     expect(form).toContain("stripeChargeNotice");
+    expect(form).toContain("floorFillHint");
+    expect(form).toContain("readRememberedRequesterVat");
     expect(form).toMatch(/not billed as a row/);
+    expect(form).toMatch(/requester, not billed/);
   });
 
   it("lands the free-check number in the batch and scrolls to the order form", () => {

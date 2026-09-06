@@ -10,7 +10,7 @@ export const dynamic = "force-static";
 export const metadata: Metadata = {
   title: "VIESProof - VIES consultation numbers for accountants",
   description:
-    "Check one EU VAT number free. Verify a list from €4.90 and get every VIES consultation number in a sealed PDF/CSV. For accountants, bookkeepers and exporters.",
+    "Check one EU VAT number free. Pay from €4.90 for VIES consultation numbers in a PDF and CSV. For accountants, bookkeepers and exporters — not tax advice.",
   alternates: { canonical: "/", languages: { en: "/", sv: "/sv" } },
 };
 
@@ -22,7 +22,8 @@ export default function HomePage() {
         <p className="lede">
           When you zero-rate an intra-EU invoice, a tax authority can ask who checked the customer&apos;s VAT number,
           and when. VIES issues that identifier — a consultation number — only if you send your own VAT number with the
-          check. This service always does. Sealed PDF and CSV, immediately. From {formatMinor(MINIMUM_ORDER_MINOR)}.
+          check. This service always does. PDF and CSV of the answers, immediately. From{" "}
+          {formatMinor(MINIMUM_ORDER_MINOR)}. The free check is the yes/no; you pay only for the consultation number.
         </p>
         <p className="audience">
           Built for reverse-charge files, period-end reviews and exporter customer lists — not for a one-off curiosity

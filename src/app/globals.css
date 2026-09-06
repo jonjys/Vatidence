@@ -244,6 +244,7 @@ button.ghost:hover { border-color: var(--accent); }
 .pay-needs li { margin: 4px 0; }
 .pay-block { margin-top: 10px; }
 .pay-charge { margin: 12px 0 0; }
+.floor-fill { margin: 8px 0 0; }
 
 @media (max-width: 520px) {
   .payrow {
@@ -338,7 +339,7 @@ footer a { margin-right: 14px; }
 .who.dim { color: var(--muted); }
 
 /* The upgrade lives inside the answer, because that is the moment the
-   difference between a yes/no and evidence becomes concrete. */
+   difference between a yes/no and a consultation number becomes concrete. */
 .gap {
   margin-top: 16px;
   padding: 14px;

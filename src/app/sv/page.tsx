@@ -10,7 +10,7 @@ export const dynamic = "force-static";
 export const metadata: Metadata = {
   title: "VIESProof - VIES-konsultationsnummer för redovisare",
   description:
-    "Kontrollera ett EU-momsnummer gratis. Verifiera en lista från 4,90 € och få varje VIES-konsultationsnummer i förseglad PDF/CSV. För redovisare, bokförare och exportörer.",
+    "Kontrollera ett EU-momsnummer gratis. Betala från 4,90 € för VIES-konsultationsnummer i PDF och CSV. För redovisare, bokförare och exportörer — inte skatterådgivning.",
   alternates: { canonical: "/sv", languages: { en: "/", sv: "/sv" } },
   openGraph: { locale: "sv_SE" },
 };
@@ -27,8 +27,8 @@ export default function SwedishHomePage() {
         <p className="lede">
           När ni säljer utan moms inom EU kan Skatteverket — eller motsvarande i ett annat land — begära vem som
           kontrollerade kundens momsnummer, och när. VIES utfärdar den identifikatorn, ett konsultationsnummer, bara om
-          ni skickar ert eget momsnummer med frågan. Den här tjänsten gör alltid det. Förseglad PDF och CSV, direkt.
-          Från {floor}.
+          ni skickar ert eget momsnummer med frågan. Den här tjänsten gör alltid det. PDF och CSV med svaren, direkt.
+          Från {floor}. Den fria kontrollen är ja/nej; ni betalar bara för konsultationsnumret.
         </p>
         <p className="audience">
           För omvänd skattskyldighet, periodavstämning och exportörers kundlistor — inte för en enstaka nyfiken

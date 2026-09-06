@@ -25,7 +25,15 @@ export const FAQ_EN: readonly FaqItem[] = [
   },
   {
     q: "What is the minimum order?",
-    a: "€4.90, even for a single number. The published €0.39 rate is the first-tier price; a batch smaller than 13 numbers still pays the floor, so the effective rate is higher until that floor is covered. One payment, no subscription.",
+    a: "€4.90, even for a single number. The published €0.39 rate is the first-tier price; a batch smaller than 13 numbers still pays the floor, so the effective rate is higher until that floor is covered. The same €4.90 already covers up to 12 numbers. One payment, no subscription.",
+  },
+  {
+    q: "I only have one number. Why pay €4.90?",
+    a: "The free check already answered yes or no. You pay only if you need the consultation number. €4.90 is the minimum checkout, not the per-number rate — a single Stripe session still has to clear a fee. Paste the rest of a period-end list and the same €4.90 covers up to 12 numbers. It is not tax advice.",
+  },
+  {
+    q: "What do I get that the free check does not?",
+    a: "A consultation number from VIES on each row, plus a PDF and CSV of the answers. The free check sends no requester, so VIES issues no identifier. Your own VAT is required on the paid step so VIES can issue that number; it is not billed as a row.",
   },
   {
     q: "What if a VAT number is not valid?",
@@ -60,8 +68,16 @@ export const FAQ_SV: readonly FaqItem[] = [
   },
   {
     q: "Vad är minsta order?",
-    a: "4,90 €, även för ett enda nummer. Publicerat styckpris 0,39 € är förstasteget; en lista med färre än 13 nummer kostar ändå golvet, så det effektiva priset är högre tills golvet är täckt. En betalning, ingen prenumeration.",
+    a: "4,90 €, även för ett enda nummer. Publicerat styckpris 0,39 € är förstasteget; en lista med färre än 13 nummer kostar ändå golvet, så det effektiva priset är högre tills golvet är täckt. Samma 4,90 € täcker redan upp till 12 nummer. En betalning, ingen prenumeration.",
   },
+  {
+    q: "Jag har bara ett nummer. Varför 4,90 €?",
+    a: "Den fria kontrollen har redan svarat ja eller nej. Ni betalar bara om ni behöver konsultationsnumret. 4,90 € är minsta checkout, inte styckpriset — en Stripe-session ska ändå täcka en avgift. Klistra in resten av periodlistan så täcker samma 4,90 € upp till 12 nummer. Inte skatterådgivning.",
+  },
+  {
+    q: "Vad får jag som den fria kontrollen inte ger?",
+    a: "Ett konsultationsnummer från VIES på varje rad, plus PDF och CSV med svaren. Den fria kontrollen skickar ingen frågeställare, så VIES utfärdar ingen identifikator. Ert eget momsnummer krävs i det betalda steget så att VIES kan utfärda det numret; det debiteras inte som en rad.",
+  }
   {
     q: "Vad händer om ett momsnummer inte är giltigt?",
     a: "Det är ett svar, och ett svar är det du betalat för. Ogiltiga nummer debiteras. Rader som inte går att läsa som EU-momsnummer stoppas före betalning och debiteras inte.",

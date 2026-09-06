@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { MINIMUM_ORDER_MINOR, formatMinor } from "@/lib/pricing";
+import { MINIMUM_ORDER_MINOR, firstCountWithoutMinimum, formatMinor } from "@/lib/pricing";
 import { parseVat } from "@/lib/vat";
 
 type CheckOk = {
@@ -90,14 +90,16 @@ export function FreeCheck({ onEscalate }: { onEscalate: (vatNumber: string) => v
           */}
           <div className="gap">
             <p>
-              <strong>The yes/no above is complete, and it is free.</strong> It has no consultation number. VIES
-              issues that identifier only when the requester sends their own VAT number — who checked, which number,
-              and when. That is the paid product. It is not an extra legal stamp, and it is not tax advice.
+              <strong>The yes/no above is complete, and it is free.</strong> Pay only if you need the consultation
+              number. VIES issues that identifier only when the requester sends their own VAT number — who checked,
+              which number, and when. That is the paid product. It is not an extra legal stamp, and it is not tax
+              advice.
             </p>
             <p className="escalate-note">
-              One number is {formatMinor(MINIMUM_ORDER_MINOR)} (the minimum), not €0.39. {result.vatNumber} will be
-              added to the list below. You still need to enter your own VAT — it is sent to VIES as the requester, not
-              billed as a row.
+              One number is {formatMinor(MINIMUM_ORDER_MINOR)} (the minimum), not €0.39. The same{" "}
+              {formatMinor(MINIMUM_ORDER_MINOR)} covers up to {firstCountWithoutMinimum() - 1} numbers.{" "}
+              {result.vatNumber} will be added to the list below. You still need to enter your own VAT — it is sent to
+              VIES as the requester, not billed as a row.
             </p>
             <button type="button" className="escalate" onClick={() => onEscalate(result.vatNumber)}>
               Get the consultation number — {formatMinor(MINIMUM_ORDER_MINOR)} for this number

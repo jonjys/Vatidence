@@ -26,12 +26,13 @@ VAT number. Most people skip that step on the Commission site. That identifier
 is what VIES returned, not a legal opinion.
 
 I run VIESProof (https://viesproof.eu): paste a list, pay once from €4.90
-(that is the minimum, even for one number), get every consultation number in a
-PDF and CSV. No account. Rows a member state cannot answer are refunded
-automatically. Not tax advice.
+(that is the minimum, even for one number; the same €4.90 covers up to 12
+numbers), get every consultation number in a PDF and CSV. No account. Rows a
+member state cannot answer are refunded automatically. Not tax advice.
 
 There is a free single-number check on the page if you want to see the gap
-(the free answer honestly has no consultation number).
+(the free answer honestly has no consultation number — that yes/no is already
+finished).
 
 If a current client list is sitting in a spreadsheet for period-end, that is
 the use. I am not asking for a subscription.
@@ -114,3 +115,27 @@ polite ping.
 If they reply “we already do this on the Commission site”, the only useful
 sentence is: the consultation number is missing unless they typed their own
 VAT every time.
+
+---
+
+## If they already used the free check
+
+Do not invent that anyone has paid. Live Stripe (2026-09) creates Checkout
+Sessions at €4.90 (`cs_live_*`) that expire unpaid. There are still zero
+successful PaymentIntents. The useful follow-up is the gap, not a receipt.
+
+**Subject:** The free yes/no vs the consultation number
+
+Hello {name},
+
+If you tried the free check on https://viesproof.eu, that yes/no is the whole
+answer and it is finished. The paid step is only the consultation number —
+VIES issues that when you send your own VAT as requester. One number is €4.90
+(the minimum), not €0.39. Your VAT is the requester identity, not a billed
+row. A period-end list of up to 12 numbers is the same €4.90.
+
+Not tax advice. Happy to stop here if it is not relevant.
+
+Fredrik Kornelind
+Nytto Labs — Sweden, F-tax, VAT-registered
+https://viesproof.eu · hello@nyttolabs.com

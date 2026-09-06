@@ -22,6 +22,8 @@ describe("first-customer docs", () => {
     expect(outreach).toMatch(/VIES-konsultationsnummer utan 40 sekunder/);
     expect(outreach).toMatch(/LinkedIn DM — English/);
     expect(outreach).toMatch(/LinkedIn DM — Swedish/);
+    expect(outreach).toMatch(/If they already used the free check/);
+    expect(outreach).toMatch(/zero successful PaymentIntents|expire unpaid/);
     expect(outreach).toContain("https://viesproof.eu");
     expect(outreach).toContain("hello@nyttolabs.com");
   });

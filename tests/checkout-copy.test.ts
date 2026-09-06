@@ -3,6 +3,7 @@ import {
   checkoutCancelUrl,
   checkoutProductDescription,
   checkoutSubmitMessage,
+  floorFillHint,
   payBlockedHint,
   payCtaLabel,
   stripeChargeNotice,
@@ -57,6 +58,21 @@ describe("stripeChargeNotice", () => {
     expect(line).toMatch(/4\.90/);
     expect(line).toMatch(/minimum/);
     expect(line).not.toMatch(/official proof|evidence pack/i);
+  });
+});
+
+describe("floorFillHint", () => {
+  it("tells a one-number order the same €4.90 covers up to 12", () => {
+    const line = floorFillHint(quote(1));
+    expect(line).toMatch(/same/);
+    expect(line).toMatch(/4\.90/);
+    expect(line).toMatch(/12 numbers/);
+    expect(line).toMatch(/Add 11 more/);
+    expect(line).not.toMatch(/official proof|evidence pack/i);
+  });
+
+  it("is silent once the floor is covered", () => {
+    expect(floorFillHint(quote(13))).toBeNull();
   });
 });
 

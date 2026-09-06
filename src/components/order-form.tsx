@@ -2,12 +2,13 @@
 
 import Link from "next/link";
 import { useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
-import { payBlockedHint, payCtaLabel, stripeChargeNotice } from "@/lib/checkout-copy";
+import { floorFillHint, payBlockedHint, payCtaLabel, stripeChargeNotice } from "@/lib/checkout-copy";
 import { CHECKOUT_NETWORK, CHECKOUT_NOT_STARTED, checkoutErrorMessage, readJsonBody } from "@/lib/checkout-error";
 import { CONTACT, OPERATOR_TAX_STATUS } from "@/lib/contact";
 import { exampleVatListText } from "@/lib/demo-vats";
 import { MAX_ROWS, MAX_UPLOAD_BYTES } from "@/lib/limits";
 import { MINIMUM_ORDER_MINOR, formatLiveQuoteHint, formatMinor, minimumFloorExplanation, quote } from "@/lib/pricing";
+import { readRememberedRequesterVat, rememberRequesterVat } from "@/lib/requester-memory";
 import { parseVat, parseVatList } from "@/lib/vat";
 
 type ApiOk = { checkoutUrl: string; resultUrl: string };
@@ -88,13 +89,29 @@ export function OrderForm({ seed }: { seed?: OrderFormSeed | null } = {}) {
     );
     setExampleLoaded(false);
     document.getElementById("order")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    window.setTimeout(() => {
+      const el = document.getElementById("requester");
+      if (el instanceof HTMLInputElement && !el.value.trim()) el.focus();
+    }, 300);
   }, [seed]);
+
+  // People who open Stripe and back out should not re-type the requester VAT.
+  // Restore only if the field is still empty after a relist attempt.
+  useEffect(() => {
+    const remembered = readRememberedRequesterVat(window.localStorage);
+    if (!remembered) return;
+    setRequesterVat((prev) => (prev.trim() ? prev : remembered));
+  }, []);
 
   // Parsing runs on the exact same module the server uses, so what the customer
   // is quoted is what the server will charge.
   const deferredList = useDeferredValue(list);
   const parsed = useMemo(() => parseVatList(deferredList, MAX_ROWS), [deferredList]);
   const requester = useMemo(() => (requesterVat.trim() ? parseVat(requesterVat) : null), [requesterVat]);
+
+  useEffect(() => {
+    if (requester?.ok) rememberRequesterVat(window.localStorage, requester.value.canonical);
+  }, [requester]);
 
   const priced = parsed.items.length > 0 ? quote(parsed.items.length) : null;
   const requesterOk = requester?.ok === true;
@@ -204,19 +221,19 @@ export function OrderForm({ seed }: { seed?: OrderFormSeed | null } = {}) {
       {seedNotice ? <p className="notice">{seedNotice}</p> : null}
 
       <div className="field">
-        <label htmlFor="requester">Your own EU VAT number</label>
+        <label htmlFor="requester">Your own EU VAT number — requester, not billed</label>
         <input
           id="requester"
           type="text"
-          autoComplete="off"
+          autoComplete="organization"
           spellCheck={false}
           placeholder="SE556036079301"
           value={requesterVat}
           onChange={(e) => setRequesterVat(e.target.value)}
         />
         <p className="hint">
-          Required so VIES can issue a consultation number. Sent to the Commission as the requester — not added to the
-          list you pay for.
+          VIES issues a consultation number only when the requester identifies itself. This is sent to the Commission —
+          it is not added to the list you pay for, and it is not a billed row.
         </p>
         {requesterVat.trim() && requester && !requester.ok ? (
           <p className="error" style={{ marginTop: 8 }}>
@@ -327,6 +344,7 @@ export function OrderForm({ seed }: { seed?: OrderFormSeed | null } = {}) {
         </li>
       </ul>
       {priced ? <p className="notice pay-charge">{stripeChargeNotice(priced)}</p> : null}
+      {priced && floorFillHint(priced) ? <p className="hint floor-fill">{floorFillHint(priced)}</p> : null}
 
       <div className="payrow">
         <div className="pay-price">

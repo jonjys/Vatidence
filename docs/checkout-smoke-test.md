@@ -36,9 +36,10 @@ Use a **preview or local** deploy whose `STRIPE_SECRET_KEY` starts with
 2. Open `/` (or `/sv`). Paste a format-valid VAT in “your own EU VAT number”
    (e.g. the public sample `DE811907980`) and load the example list, or type one number.
 3. Confirm the live quote shows the **€4.90 minimum** for a small batch, and
-   the pay button reads **Pay and verify** only once both fields are valid.
+   the pay button reads **Pay €4.90 minimum** (not a mute “Pay and verify”).
    If the requester VAT is empty the button must say **Enter your VAT number
    to continue** — that is the first-order leak this copy exists to close.
+   A one-number quote should also say the same €4.90 covers up to 12 numbers.
 4. Click through. You should land on `checkout.stripe.com`.
 5. Pay with Stripe’s test card `4242 4242 4242 4242`, any future expiry, any
    CVC, any name.
@@ -71,10 +72,11 @@ Then, in a private window on https://viesproof.eu:
 1. Free-check a known format-valid number (e.g. a public sample on the form).
 2. Escalate to the paid form. Enter **your** VAT as requester (a real EU VAT
    you are allowed to send to VIES — this is forwarded to the Commission).
-3. Click **Pay and verify**.
+3. Click **Pay €4.90 minimum** (or **Pay €X.XX** once the floor is covered).
 4. Confirm the next page is Stripe Checkout for about €4.90 (or the quoted
-   total), statement-looking text mentions VIESProof / Nytto Labs, and the
-   submit helper text has the `/r/…` result URL.
+   total), the line mentions the €4.90 minimum on a small batch, statement
+   text mentions VIESProof / Nytto Labs, and the submit helper has the `/r/…`
+   result URL. Do not treat an expired `cs_live_*` as a broken button.
 5. **Close the tab.** Do not pay. Abandoned live sessions expire and are
    deleted by cron; they must not become a charge.
 
