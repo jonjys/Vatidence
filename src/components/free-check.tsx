@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { MINIMUM_ORDER_MINOR, formatMinor } from "@/lib/pricing";
 import { parseVat } from "@/lib/vat";
 
 type CheckOk = {
@@ -92,8 +93,9 @@ export function FreeCheck({ onEscalate }: { onEscalate: (vatNumber: string) => v
               <strong>This answer carries no consultation number.</strong> VIES issues one only when the requester
               gives their own VAT number, and that identifier records who checked, which number, and when.
             </p>
-            <button type="button" className="link" onClick={() => onEscalate(result.vatNumber)}>
-              Get the consultation number for {result.vatNumber} →
+            <p className="escalate-note">{result.vatNumber} will be added to the list below.</p>
+            <button type="button" className="escalate" onClick={() => onEscalate(result.vatNumber)}>
+              Get the consultation number — from {formatMinor(MINIMUM_ORDER_MINOR)}
             </button>
           </div>
         </div>

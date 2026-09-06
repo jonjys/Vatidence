@@ -158,6 +158,12 @@ async function createOrder(req: NextRequest): Promise<Response> {
       }
     });
     log.error("order.create_failed", { orderId, error: errorMessage(e) });
-    return json({ error: "order_failed", message: "Could not start checkout. Please try again." }, 502);
+    return json(
+      {
+        error: "order_failed",
+        message: "Checkout could not be started. You have not been charged. Please try again in a moment.",
+      },
+      502,
+    );
   }
 }

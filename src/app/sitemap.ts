@@ -13,14 +13,15 @@ import { siteUrl } from "@/lib/site";
  * It is content metadata, not a build timestamp: bump it when these pages
  * change, and leave it alone for a deploy that does not touch them.
  */
-const CONTENT_LAST_MODIFIED = "2026-09-04";
+const LEGAL_LAST_MODIFIED = "2026-09-04";
+const HOME_LAST_MODIFIED = "2026-09-06";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   return [
-    { url: `${siteUrl}/`, lastModified: CONTENT_LAST_MODIFIED, changeFrequency: "monthly", priority: 1 },
-    { url: `${siteUrl}/contact`, lastModified: CONTENT_LAST_MODIFIED, changeFrequency: "yearly", priority: 0.4 },
-    { url: `${siteUrl}/terms`, lastModified: CONTENT_LAST_MODIFIED, changeFrequency: "yearly", priority: 0.3 },
-    { url: `${siteUrl}/refunds`, lastModified: CONTENT_LAST_MODIFIED, changeFrequency: "yearly", priority: 0.3 },
-    { url: `${siteUrl}/privacy`, lastModified: CONTENT_LAST_MODIFIED, changeFrequency: "yearly", priority: 0.3 },
+    { url: `${siteUrl}/`, lastModified: HOME_LAST_MODIFIED, changeFrequency: "monthly", priority: 1 },
+    { url: `${siteUrl}/contact`, lastModified: LEGAL_LAST_MODIFIED, changeFrequency: "yearly", priority: 0.4 },
+    { url: `${siteUrl}/terms`, lastModified: LEGAL_LAST_MODIFIED, changeFrequency: "yearly", priority: 0.3 },
+    { url: `${siteUrl}/refunds`, lastModified: LEGAL_LAST_MODIFIED, changeFrequency: "yearly", priority: 0.3 },
+    { url: `${siteUrl}/privacy`, lastModified: LEGAL_LAST_MODIFIED, changeFrequency: "yearly", priority: 0.3 },
   ];
 }
