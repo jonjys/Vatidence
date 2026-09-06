@@ -87,6 +87,13 @@ describe("published claims", () => {
     expect(offenders).toEqual([]);
   });
 
+  it("puts operator name and F-tax status next to Pay, without inventing numbers", () => {
+    const form = readFileSync("src/components/order-form.tsx", "utf8");
+    expect(form).toContain("CONTACT.operator");
+    expect(form).toContain("OPERATOR_TAX_STATUS");
+    expect(form).toContain("/refunds");
+  });
+
   it("puts the operator person and F-tax status on the terms and contact pages", () => {
     const terms = readFileSync("src/app/terms/page.tsx", "utf8");
     const contact = readFileSync("src/app/contact/page.tsx", "utf8");

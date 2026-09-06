@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { HomeInteractive } from "@/components/home-interactive";
-import { MINIMUM_ORDER_MINOR, TIERS, formatMinor } from "@/lib/pricing";
+import { MINIMUM_ORDER_MINOR, TIERS, formatMinor, minimumFloorExplanation } from "@/lib/pricing";
 
 export const dynamic = "force-static";
 
@@ -34,11 +34,12 @@ export default function HomePage() {
       </p>
 
       <h2>Price</h2>
+      <p className="price-floor">{minimumFloorExplanation()}</p>
       <table>
         <thead>
           <tr>
             <th>VAT numbers</th>
-            <th>Price per number</th>
+            <th>Tier rate per number</th>
           </tr>
         </thead>
         <tbody>
@@ -55,9 +56,9 @@ export default function HomePage() {
         </tbody>
       </table>
       <p className="hint">
-        Minimum order {formatMinor(MINIMUM_ORDER_MINOR)}. One payment, no recurring charge. Rows a member state cannot
-        answer are <Link href="/refunds">refunded automatically</Link> — you are never billed for an answer you did not
-        get.
+        One payment, no recurring charge. Small batches still pay {formatMinor(MINIMUM_ORDER_MINOR)}, so the effective
+        rate can be higher than the tier until that floor is covered. Rows a member state cannot answer are{" "}
+        <Link href="/refunds">refunded automatically</Link> — you are never billed for an answer you did not get.
       </p>
 
       <h2>What you receive</h2>

@@ -1,11 +1,14 @@
 "use client";
 
+import Link from "next/link";
 import { useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
+import { CHECKOUT_NETWORK, CHECKOUT_NOT_STARTED, checkoutErrorMessage, readJsonBody } from "@/lib/checkout-error";
+import { CONTACT, OPERATOR_TAX_STATUS } from "@/lib/contact";
+import { exampleVatListText } from "@/lib/demo-vats";
 import { MAX_ROWS, MAX_UPLOAD_BYTES } from "@/lib/limits";
-import { formatMinor, quote } from "@/lib/pricing";
+import { MINIMUM_ORDER_MINOR, formatLiveQuoteHint, formatMinor, minimumFloorExplanation, quote } from "@/lib/pricing";
 import { parseVat, parseVatList } from "@/lib/vat";
 
-type ApiError = { error: string; message?: string };
 type ApiOk = { checkoutUrl: string; resultUrl: string };
 type ApiList = { requesterVat: string; vatNumbers: string[] };
 
@@ -15,12 +18,17 @@ type Relist = { state: "loading" } | { state: "ready"; count: number } | { state
 /** A number handed over from the free check, so it lands in the batch. */
 export type OrderFormSeed = { vatNumber: string; at: number };
 
+const EXAMPLE_TEXT = exampleVatListText();
+const TAX_STATUS_LINE = OPERATOR_TAX_STATUS.replace(/\.$/, "").split(". ").join(" · ");
+
 export function OrderForm({ seed }: { seed?: OrderFormSeed | null } = {}) {
   const [requesterVat, setRequesterVat] = useState("");
   const [list, setList] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [relist, setRelist] = useState<Relist | null>(null);
+  const [seedNotice, setSeedNotice] = useState<string | null>(null);
+  const [exampleLoaded, setExampleLoaded] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
   const relistDone = useRef(false);
 
@@ -48,6 +56,7 @@ export function OrderForm({ seed }: { seed?: OrderFormSeed | null } = {}) {
           return;
         }
         setList(body.vatNumbers.join("\n"));
+        setExampleLoaded(false);
         // "(purged)" is what a retention sweep leaves behind; never pre-fill it.
         if (body.requesterVat && !body.requesterVat.includes("(")) setRequesterVat(body.requesterVat);
         setRelist({ state: "ready", count: body.vatNumbers.length });
@@ -69,7 +78,9 @@ export function OrderForm({ seed }: { seed?: OrderFormSeed | null } = {}) {
       if (already) return prev;
       return prev.trim() ? `${prev.trimEnd()}\n${seed.vatNumber}` : seed.vatNumber;
     });
-    document.getElementById("list")?.scrollIntoView({ behavior: "smooth", block: "center" });
+    setSeedNotice(`Added ${seed.vatNumber} from your free check. Enter your own VAT number to pay.`);
+    setExampleLoaded(false);
+    document.getElementById("order")?.scrollIntoView({ behavior: "smooth", block: "start" });
   }, [seed]);
 
   // Parsing runs on the exact same module the server uses, so what the customer
@@ -80,6 +91,7 @@ export function OrderForm({ seed }: { seed?: OrderFormSeed | null } = {}) {
 
   const priced = parsed.items.length > 0 ? quote(parsed.items.length) : null;
   const ready = parsed.items.length > 0 && requester?.ok === true && !busy;
+  const showingExample = exampleLoaded && list.trim() === EXAMPLE_TEXT;
 
   async function onFile(file: File) {
     if (file.size > MAX_UPLOAD_BYTES) {
@@ -88,8 +100,23 @@ export function OrderForm({ seed }: { seed?: OrderFormSeed | null } = {}) {
     }
     const text = await file.text();
     setList((prev) => (prev.trim() ? `${prev}\n${text}` : text));
+    setExampleLoaded(false);
     setError(null);
     if (fileRef.current) fileRef.current.value = "";
+  }
+
+  function loadExample() {
+    setList(EXAMPLE_TEXT);
+    setExampleLoaded(true);
+    setSeedNotice(null);
+    setError(null);
+  }
+
+  function clearList() {
+    setList("");
+    setExampleLoaded(false);
+    setSeedNotice(null);
+    setError(null);
   }
 
   async function submit() {
@@ -106,14 +133,18 @@ export function OrderForm({ seed }: { seed?: OrderFormSeed | null } = {}) {
           idempotencyKey: crypto.randomUUID(),
         }),
       });
-      const body: unknown = await res.json();
+      const body = await readJsonBody(res);
       if (!res.ok) {
-        const err = body as ApiError;
-        setError(err.message ?? "Could not start checkout. Please try again.");
+        setError(checkoutErrorMessage(res.status, body));
         setBusy(false);
         return;
       }
       const ok = body as ApiOk;
+      if (!ok?.checkoutUrl) {
+        setError(CHECKOUT_NOT_STARTED);
+        setBusy(false);
+        return;
+      }
       // Keep the result link locally so a closed tab is never a lost order.
       try {
         localStorage.setItem("viesproof:last-result", ok.resultUrl);
@@ -122,13 +153,13 @@ export function OrderForm({ seed }: { seed?: OrderFormSeed | null } = {}) {
       }
       window.location.href = ok.checkoutUrl;
     } catch {
-      setError("Network error. Please try again.");
+      setError(CHECKOUT_NETWORK);
       setBusy(false);
     }
   }
 
   return (
-    <div className="panel">
+    <div className="panel" id="order">
       <p className="card-title">Start a verification</p>
       <p className="card-sub">Paste your list, see the price, pay once. Nothing is charged until you confirm.</p>
 
@@ -142,6 +173,7 @@ export function OrderForm({ seed }: { seed?: OrderFormSeed | null } = {}) {
       {relist?.state === "gone" ? (
         <p className="hint">That previous order is no longer available, so the list could not be loaded.</p>
       ) : null}
+      {seedNotice ? <p className="notice">{seedNotice}</p> : null}
 
       <div className="field">
         <label htmlFor="requester">Your own EU VAT number</label>
@@ -172,10 +204,15 @@ export function OrderForm({ seed }: { seed?: OrderFormSeed | null } = {}) {
           spellCheck={false}
           placeholder={"DE811907980\nFR40303265045\nIT00743110157\n…one per line, or paste a CSV column"}
           value={list}
-          onChange={(e) => setList(e.target.value)}
+          onChange={(e) => {
+            setList(e.target.value);
+            setExampleLoaded(false);
+          }}
         />
         <p className="hint">
-          One per line, or comma/semicolon/tab separated. Duplicates are removed and never charged twice.{" "}
+          One per line, or comma/semicolon/tab separated. Duplicates are removed and never charged twice. Minimum order{" "}
+          {formatMinor(MINIMUM_ORDER_MINOR)}
+          {parsed.items.length === 0 ? " — even for a single number." : "."}{" "}
           <input
             ref={fileRef}
             type="file"
@@ -186,12 +223,28 @@ export function OrderForm({ seed }: { seed?: OrderFormSeed | null } = {}) {
             }}
           />
         </p>
+        <div className="list-actions">
+          <button type="button" className="ghost" onClick={loadExample}>
+            Load example list
+          </button>
+          {list.trim() ? (
+            <button type="button" className="ghost" onClick={clearList}>
+              Clear list
+            </button>
+          ) : null}
+        </div>
+        {showingExample ? (
+          <p className="notice" style={{ marginTop: 10 }}>
+            Example data — format-valid public samples, not your customers. Clear the list before you pay unless you
+            want these checked.
+          </p>
+        ) : null}
       </div>
 
       <div className="summary">
         <div className="stat">
           <div className="n">{parsed.items.length}</div>
-          <div className="k">to verify</div>
+          <div className="k">billable</div>
         </div>
         <div className="stat">
           <div className="n">{parsed.duplicates.length}</div>
@@ -202,6 +255,18 @@ export function OrderForm({ seed }: { seed?: OrderFormSeed | null } = {}) {
           <div className="k">unusable</div>
         </div>
       </div>
+      {parsed.duplicates.length + parsed.rejected.length > 0 ? (
+        <p className="hint">
+          Charged for {parsed.items.length} billable number{parsed.items.length === 1 ? "" : "s"}
+          {parsed.duplicates.length
+            ? ` · ${parsed.duplicates.length} duplicate${parsed.duplicates.length === 1 ? "" : "s"} removed`
+            : ""}
+          {parsed.rejected.length
+            ? ` · ${parsed.rejected.length} unusable line${parsed.rejected.length === 1 ? "" : "s"} skipped`
+            : ""}
+          .
+        </p>
+      ) : null}
 
       {parsed.rejected.length > 0 ? (
         <div className="notice">
@@ -223,21 +288,26 @@ export function OrderForm({ seed }: { seed?: OrderFormSeed | null } = {}) {
         </p>
       ) : null}
 
-      <div className="row" style={{ marginTop: 18 }}>
-        <div>
-          <div className="price">{priced ? formatMinor(priced.totalMinor) : formatMinor(0)}</div>
+      <div className="payrow">
+        <div className="pay-price">
+          <div className="price">{priced ? formatMinor(priced.totalMinor) : `from ${formatMinor(MINIMUM_ORDER_MINOR)}`}</div>
           <div className="hint">
-            {priced
-              ? `${priced.itemCount} number${priced.itemCount === 1 ? "" : "s"} · ${formatMinor(
-                  priced.effectiveUnitMinor,
-                )} each${priced.minimumApplied ? " (minimum order applied)" : ""} · one-off payment`
-              : "Add VAT numbers to see the price."}
+            {priced ? formatLiveQuoteHint(priced) : minimumFloorExplanation()}
           </div>
         </div>
-        <button type="button" onClick={() => void submit()} disabled={!ready}>
+        <button type="button" className="pay-cta" onClick={() => void submit()} disabled={!ready}>
           {busy ? "Opening checkout…" : "Pay and verify"}
         </button>
       </div>
+      <p className="trust">
+        <a href={CONTACT.operatorUrl} rel="noopener">
+          {CONTACT.operator}
+        </a>
+        {" · "}
+        {TAX_STATUS_LINE}
+        {" · "}
+        <Link href="/refunds">unanswered rows refunded automatically</Link>
+      </p>
     </div>
   );
 }

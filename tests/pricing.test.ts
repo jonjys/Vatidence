@@ -1,5 +1,14 @@
 import { describe, expect, it } from "vitest";
-import { MINIMUM_ORDER_MINOR, TIERS, formatMinor, quote, refundForFailedRows } from "@/lib/pricing";
+import {
+  MINIMUM_ORDER_MINOR,
+  TIERS,
+  firstCountWithoutMinimum,
+  formatLiveQuoteHint,
+  formatMinor,
+  minimumFloorExplanation,
+  quote,
+  refundForFailedRows,
+} from "@/lib/pricing";
 
 describe("quote", () => {
   it("applies the minimum order to small batches", () => {
@@ -47,6 +56,42 @@ describe("quote", () => {
 
   it("formats money in euro", () => {
     expect(formatMinor(490)).toContain("4.90");
+  });
+});
+
+describe("minimum floor copy", () => {
+  it("knows when the tier rate actually applies", () => {
+    expect(firstCountWithoutMinimum()).toBe(13);
+    expect(quote(12).minimumApplied).toBe(true);
+    expect(quote(13).minimumApplied).toBe(false);
+  });
+
+  it("says an 11-row batch pays the floor, not €0.39 each", () => {
+    const q = quote(11);
+    expect(q.totalMinor).toBe(490);
+    expect(q.effectiveUnitMinor).toBe(45);
+    const line = formatLiveQuoteHint(q);
+    expect(line).toMatch(/11 billable/);
+    expect(line).toMatch(/4\.90/);
+    expect(line).toMatch(/0\.39/);
+    expect(line).toMatch(/4\.29/);
+    expect(line).toMatch(/0\.45/);
+    expect(line).toMatch(/until the minimum is covered/);
+  });
+
+  it("does not mention the floor once the tier subtotal covers it", () => {
+    const line = formatLiveQuoteHint(quote(15));
+    expect(line).toMatch(/15 billable/);
+    expect(line).not.toMatch(/minimum applied/);
+  });
+
+  it("states the floor next to the published tier table", () => {
+    const copy = minimumFloorExplanation();
+    expect(copy).toMatch(/Minimum order/);
+    expect(copy).toMatch(/4\.90/);
+    expect(copy).toMatch(/0\.39/);
+    expect(copy).toMatch(/13 numbers/);
+    expect(copy).toMatch(/effective rate is higher/);
   });
 });
 
