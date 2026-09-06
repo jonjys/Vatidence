@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
-import { payBlockedHint, payCtaLabel } from "@/lib/checkout-copy";
+import { payBlockedHint, payCtaLabel, stripeChargeNotice } from "@/lib/checkout-copy";
 import { CHECKOUT_NETWORK, CHECKOUT_NOT_STARTED, checkoutErrorMessage, readJsonBody } from "@/lib/checkout-error";
 import { CONTACT, OPERATOR_TAX_STATUS } from "@/lib/contact";
 import { exampleVatListText } from "@/lib/demo-vats";
@@ -83,7 +83,9 @@ export function OrderForm({ seed }: { seed?: OrderFormSeed | null } = {}) {
       if (already) return prev;
       return prev.trim() ? `${prev.trimEnd()}\n${seed.vatNumber}` : seed.vatNumber;
     });
-    setSeedNotice(`Added ${seed.vatNumber} from your free check. Enter your own VAT number to pay.`);
+    setSeedNotice(
+      `Added ${seed.vatNumber} from the free check (yes/no only). Enter your own VAT so VIES can issue a consultation number — it is not billed as a row. One number is ${formatMinor(MINIMUM_ORDER_MINOR)}.`,
+    );
     setExampleLoaded(false);
     document.getElementById("order")?.scrollIntoView({ behavior: "smooth", block: "start" });
   }, [seed]);
@@ -99,7 +101,13 @@ export function OrderForm({ seed }: { seed?: OrderFormSeed | null } = {}) {
   const hasBillableItems = parsed.items.length > 0;
   const ready = hasBillableItems && requesterOk && !busy;
   const blockedHint = busy ? null : payBlockedHint({ hasBillableItems, requesterOk });
-  const ctaLabel = payCtaLabel({ busy, hasBillableItems, requesterOk });
+  const ctaLabel = payCtaLabel({
+    busy,
+    hasBillableItems,
+    requesterOk,
+    totalMinor: priced?.totalMinor,
+    minimumApplied: priced?.minimumApplied,
+  });
   const showingExample = exampleLoaded && list.trim() === EXAMPLE_TEXT;
 
   async function onFile(file: File) {
@@ -169,8 +177,11 @@ export function OrderForm({ seed }: { seed?: OrderFormSeed | null } = {}) {
 
   return (
     <div className="panel" id="order">
-      <p className="card-title">Start a verification</p>
-      <p className="card-sub">Paste your list, see the price, pay once. Nothing is charged until you confirm.</p>
+      <p className="card-title">Pay for consultation numbers</p>
+      <p className="card-sub">
+        The free check is a yes/no. This step asks VIES for a consultation number on each row. Minimum{" "}
+        {formatMinor(MINIMUM_ORDER_MINOR)}, even for one number. Nothing is charged until you confirm on Stripe.
+      </p>
 
       {relist?.state === "loading" ? <p className="hint">Loading your previous list…</p> : null}
       {relist?.state === "ready" ? (
@@ -204,8 +215,8 @@ export function OrderForm({ seed }: { seed?: OrderFormSeed | null } = {}) {
           onChange={(e) => setRequesterVat(e.target.value)}
         />
         <p className="hint">
-          Required. VIES only issues a consultation number when the requester identifies itself — this is what turns a
-          lookup into evidence.
+          Required so VIES can issue a consultation number. Sent to the Commission as the requester — not added to the
+          list you pay for.
         </p>
         {requesterVat.trim() && requester && !requester.ok ? (
           <p className="error" style={{ marginTop: 8 }}>
@@ -306,12 +317,16 @@ export function OrderForm({ seed }: { seed?: OrderFormSeed | null } = {}) {
       ) : null}
 
       <ul className="pay-needs">
-        <li>Your own EU VAT number — required, or VIES issues no consultation number</li>
-        <li>From {formatMinor(MINIMUM_ORDER_MINOR)}, one-off — even for a single number</li>
+        <li>Your own EU VAT number — required for consultation numbers, not billed as a row</li>
+        <li>
+          {formatMinor(MINIMUM_ORDER_MINOR)} minimum, even for one number — the €0.39 rate applies once a batch covers
+          that floor (13 numbers)
+        </li>
         <li>
           <Link href="/refunds">Unanswered rows refunded automatically</Link>
         </li>
       </ul>
+      {priced ? <p className="notice pay-charge">{stripeChargeNotice(priced)}</p> : null}
 
       <div className="payrow">
         <div className="pay-price">

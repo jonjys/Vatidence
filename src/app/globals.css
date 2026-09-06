@@ -243,6 +243,7 @@ button.ghost:hover { border-color: var(--accent); }
 }
 .pay-needs li { margin: 4px 0; }
 .pay-block { margin-top: 10px; }
+.pay-charge { margin: 12px 0 0; }
 
 @media (max-width: 520px) {
   .payrow {

@@ -22,11 +22,13 @@ Hello {name},
 When a 0% intra-EU invoice is later questioned, the useful artefact is not a
 yes/no from VIES — it is the consultation number that records who checked which
 VAT, and when. VIES only issues that number if the requester sends their own
-VAT number. Most people skip that step on the Commission site.
+VAT number. Most people skip that step on the Commission site. That identifier
+is what VIES returned, not a legal opinion.
 
-I run VIESProof (https://viesproof.eu): paste a list, pay once from €4.90, get
-every consultation number in a sealed PDF and CSV. No account. Rows a member
-state cannot answer are refunded automatically.
+I run VIESProof (https://viesproof.eu): paste a list, pay once from €4.90
+(that is the minimum, even for one number), get every consultation number in a
+PDF and CSV. No account. Rows a member state cannot answer are refunded
+automatically. Not tax advice.
 
 There is a free single-number check on the page if you want to see the gap
 (the free answer honestly has no consultation number).
@@ -52,8 +54,9 @@ momsnummer, och när. VIES utfärdar det bara om frågeställaren skickar sitt e
 momsnummer. På kommissionens sajt hoppar de flesta över det steget.
 
 Jag driver VIESProof (https://viesproof.eu): klistra in en lista, betala en
-gång från 4,90 €, få varje konsultationsnummer i förseglad PDF och CSV. Inget
-konto. Rader ett medlemsland inte kan svara på återbetalas automatiskt.
+gång från 4,90 € (minimiorder, även för ett nummer), få varje
+konsultationsnummer i PDF och CSV. Inget konto. Rader ett medlemsland inte
+kan svara på återbetalas automatiskt. Inte skatterådgivning.
 
 Det finns en gratis engångskontroll på sidan om du vill se skillnaden (det
 fria svaret har medvetet inget konsultationsnummer).
@@ -75,8 +78,8 @@ with your own VAT. Most people don’t, then have nothing to show if the
 invoice is challenged.
 
 I built https://viesproof.eu for that: list in, PDF/CSV of consultation
-numbers out, from €4.90, no account. Free single check on the page (no
-consultation number on the free one — that’s the point).
+numbers out, from €4.90 minimum (even for one number), no account. Free
+single check on the page (yes/no only — that’s the point). Not tax advice.
 
 Fredrik, Nytto Labs (Sweden). Happy to stop here if it’s not relevant.
 
@@ -90,8 +93,9 @@ De flesta hoppar över det och har sedan inget att visa om fakturan
 ifrågasätts.
 
 Jag byggde https://viesproof.eu för det: lista in, PDF/CSV med
-konsultationsnummer ut, från 4,90 €, inget konto. Gratis engångskontroll
-på sidan (utan konsultationsnummer — det är poängen).
+konsultationsnummer ut, från 4,90 € minimum (även för ett nummer), inget
+konto. Gratis engångskontroll på sidan (bara ja/nej — det är poängen).
+Inte skatterådgivning.
 
 Fredrik, Nytto Labs (Sverige). Säg till om det inte är relevant så släpper jag.
 

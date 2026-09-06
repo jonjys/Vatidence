@@ -37,6 +37,8 @@ describe("first-customer docs", () => {
   it("tells the operator how to smoke-test without taking a live card", () => {
     expect(smoke).toMatch(/sk_test_/);
     expect(smoke).toMatch(/4242 4242 4242 4242/);
+    expect(smoke).toMatch(/cs_live_/);
+    expect(smoke).toMatch(/zero successful PaymentIntents|unproven/i);
     expect(smoke).toMatch(/Do \*\*not\*\* complete a livemode payment/);
     expect(smoke).toMatch(/checkoutCancelUrl|relist/);
     expect(smoke).toMatch(/Managed Payments/);

@@ -4,8 +4,11 @@ Production at https://viesproof.eu is on **Stripe live keys**. A real card
 there is a real charge. This file is how to prove the pay path works
 *without* creating the first customer by accident.
 
-The livemode `viesproof` account having zero payment intents is expected
-until someone pays. It is not, by itself, evidence that checkout is broken.
+Live Stripe as of 2026-09: **Checkout Sessions at €4.90 (`cs_live_*`) are being
+created, then expire unpaid.** Opening checkout works. Nobody has completed pay.
+There are still **zero successful PaymentIntents**. The webhook → PDF path after
+a real charge is therefore still unproven. Do not treat an expired €4.90 session
+as a broken pay button, and do not invent a successful payment.
 
 ---
 

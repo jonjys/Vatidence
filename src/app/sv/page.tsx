@@ -32,7 +32,8 @@ export default function SwedishHomePage() {
         </p>
         <p className="audience">
           För omvänd skattskyldighet, periodavstämning och exportörers kundlistor — inte för en enstaka nyfiken
-          kontroll. Prova ett nummer gratis; betala bara när ni behöver konsultationsnumret i akten.
+          kontroll. Prova ett nummer gratis; betala bara när ni behöver konsultationsnumret, inte ett ja/nej till.
+          Det här är inte skatterådgivning.
         </p>
       </div>
 
@@ -94,7 +95,7 @@ export default function SwedishHomePage() {
       </ul>
       <p className="hint">
         Flera medlemsländer, däribland Tyskland, lämnar inget namn eller adress — bara giltighet och
-        konsultationsnummer. Paketet är skrivet så att det ändå läses som en komplett handling.
+        konsultationsnummer. PDF:en är skriven så att den fortfarande går att läsa i de fallen.
       </p>
 
       <FaqList items={FAQ_SV} title="Frågor redovisare ställer" headingId="faq-sv" lang="sv" />

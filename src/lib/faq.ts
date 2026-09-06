@@ -13,11 +13,11 @@ export type FaqItem = { q: string; a: string };
 export const FAQ_EN: readonly FaqItem[] = [
   {
     q: "Who is this for?",
-    a: "Accountants, bookkeepers and exporters who zero-rate intra-EU invoices (reverse charge) and need a VIES consultation number on file for each customer VAT they checked. Finance teams and SaaS billing operators who verify a list rather than one number at a time use it the same way.",
+    a: "Accountants, bookkeepers and exporters who zero-rate intra-EU invoices (reverse charge) and want a VIES consultation number recorded for each customer VAT they checked. Finance teams and SaaS billing operators who verify a list rather than one number at a time use it the same way. This is not tax, legal or accounting advice.",
   },
   {
     q: "What is a VIES consultation number, and why does it matter?",
-    a: "When you check a VAT number on VIES and identify yourself with your own VAT number, VIES returns a unique consultation number that records who checked, which number, and when. A tax authority can ask for that identifier if a 0% intra-EU invoice is later challenged. A yes/no without it is not something you can file.",
+    a: "When you check a VAT number on VIES and identify yourself with your own VAT number, VIES returns a unique consultation number that records who checked, which number, and when. A tax authority can ask who checked a 0% intra-EU invoice, and when. The free check on this page is a yes/no without that identifier — that is all it is, and it is already finished.",
   },
   {
     q: "Why do I have to enter my own EU VAT number?",
@@ -48,11 +48,11 @@ export const FAQ_EN: readonly FaqItem[] = [
 export const FAQ_SV: readonly FaqItem[] = [
   {
     q: "Vem är det här för?",
-    a: "Redovisningskonsulter, bokförare och exportörer som säljer utan moms inom EU (omvänd skattskyldighet) och behöver ett VIES-konsultationsnummer sparat för varje kundmomsnummer de kontrollerat. Samma sak för ekonomiavdelningar och SaaS-fakturering som tar en lista i taget.",
+    a: "Redovisningskonsulter, bokförare och exportörer som säljer utan moms inom EU (omvänd skattskyldighet) och vill ha ett VIES-konsultationsnummer för varje kundmomsnummer de kontrollerat. Samma sak för ekonomiavdelningar och SaaS-fakturering som tar en lista i taget. Det här är inte skatterådgivning, juridik eller redovisningsråd.",
   },
   {
     q: "Vad är ett VIES-konsultationsnummer, och varför spelar det roll?",
-    a: "När du kontrollerar ett momsnummer i VIES och identifierar dig med ditt eget momsnummer returnerar VIES ett unikt konsultationsnummer som visar vem som kontrollerade, vilket nummer och när. En skattemyndighet kan begära den identifikatorn om en 0 %-faktura inom EU ifrågasätts senare. Ett ja/nej utan den går inte att lägga i akten.",
+    a: "När du kontrollerar ett momsnummer i VIES och identifierar dig med ditt eget momsnummer returnerar VIES ett unikt konsultationsnummer som visar vem som kontrollerade, vilket nummer och när. En skattemyndighet kan fråga vem som kontrollerade en 0 %-faktura inom EU, och när. Den fria kontrollen på den här sidan är ett ja/nej utan den identifikatorn — det är allt den är, och den är redan klar.",
   },
   {
     q: "Varför måste jag ange mitt eget EU-momsnummer?",

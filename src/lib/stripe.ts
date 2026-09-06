@@ -1,5 +1,5 @@
 import Stripe from "stripe";
-import { checkoutCancelUrl } from "@/lib/checkout-copy";
+import { checkoutCancelUrl, checkoutProductDescription, checkoutSubmitMessage } from "@/lib/checkout-copy";
 import { CONTACT } from "@/lib/contact";
 import { env } from "@/lib/env";
 import type { RefundGateway } from "@/lib/refunds";
@@ -96,8 +96,7 @@ function checkoutParams(input: CheckoutInput): Stripe.Checkout.SessionCreatePara
           unit_amount: input.amountMinor,
           product_data: {
             name: `VIES verification of ${input.itemCount} EU VAT number${input.itemCount === 1 ? "" : "s"}`,
-            description:
-              "VIES consultation numbers plus a sealed PDF/CSV evidence pack, delivered automatically.",
+            description: checkoutProductDescription(input.itemCount, input.amountMinor),
           },
         },
       },
@@ -122,9 +121,12 @@ function checkoutParams(input: CheckoutInput): Stripe.Checkout.SessionCreatePara
     expires_at: Math.floor(Date.now() / 1000) + 60 * 60, // 1h, Stripe's minimum window is 30m
     custom_text: {
       submit: {
-        message:
-          `Your results will appear at ${resultUrl} immediately after payment. Save this link. ` +
+        message: checkoutSubmitMessage(
+          resultUrl,
+          input.itemCount,
+          input.amountMinor,
           `Sold by ${CONTACT.operator} (${CONTACT.operatorUrl}). Billing questions: ${CONTACT.email.billing}.`,
+        ),
       },
     },
   };

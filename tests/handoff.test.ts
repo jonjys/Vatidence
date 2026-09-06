@@ -9,8 +9,10 @@ describe("free-to-paid handoff", () => {
     expect(free).toContain('className="escalate"');
     expect(free).not.toMatch(/className="link"/);
     expect(free).toContain("MINIMUM_ORDER_MINOR");
-    expect(free).toMatch(/Start a paid verification/);
-    expect(free).toMatch(/Next step is a paid verification/);
+    expect(free).toMatch(/Get the consultation number/);
+    expect(free).toMatch(/The yes\/no above is complete/);
+    expect(free).toMatch(/not €0\.39/);
+    expect(free).not.toMatch(/official proof|evidence pack/i);
   });
 
   it("makes the €4.90 floor obvious next to the live price and the published table", () => {
@@ -23,6 +25,8 @@ describe("free-to-paid handoff", () => {
     expect(form).toContain("pay-needs");
     expect(form).toContain("payCtaLabel");
     expect(form).toContain("payBlockedHint");
+    expect(form).toContain("stripeChargeNotice");
+    expect(form).toMatch(/not billed as a row/);
   });
 
   it("lands the free-check number in the batch and scrolls to the order form", () => {

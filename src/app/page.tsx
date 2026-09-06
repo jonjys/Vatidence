@@ -26,7 +26,8 @@ export default function HomePage() {
         </p>
         <p className="audience">
           Built for reverse-charge files, period-end reviews and exporter customer lists — not for a one-off curiosity
-          check. Try one number free; pay only when you need the consultation number on file.
+          check. Try one number free; pay only when you need the consultation number, not another yes/no. This is not
+          tax advice, and it is not a substitute for the Commission&apos;s own VIES site.
         </p>
       </div>
 
@@ -78,8 +79,8 @@ export default function HomePage() {
 
       <h2>What you receive</h2>
       <ul>
-        <li>A PDF evidence pack: one row per VAT number, with the VIES consultation number, timestamp and registered name.</li>
-        <li>A CSV of the same data for your ledger or ERP import.</li>
+        <li>A PDF of each VIES answer: consultation number, timestamp, and registered name when the member state publishes one.</li>
+        <li>A CSV of the same data for a spreadsheet or ERP import.</li>
         <li>A SHA-256 integrity seal over the result set, printed on every page of the PDF.</li>
       </ul>
       <p className="hint">
