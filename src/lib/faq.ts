@@ -77,7 +77,7 @@ export const FAQ_SV: readonly FaqItem[] = [
   {
     q: "Vad får jag som den fria kontrollen inte ger?",
     a: "Ett konsultationsnummer från VIES på varje rad, plus PDF och CSV med svaren. Den fria kontrollen skickar ingen frågeställare, så VIES utfärdar ingen identifikator. Ert eget momsnummer krävs i det betalda steget så att VIES kan utfärda det numret; det debiteras inte som en rad.",
-  }
+  },
   {
     q: "Vad händer om ett momsnummer inte är giltigt?",
     a: "Det är ett svar, och ett svar är det du betalat för. Ogiltiga nummer debiteras. Rader som inte går att läsa som EU-momsnummer stoppas före betalning och debiteras inte.",

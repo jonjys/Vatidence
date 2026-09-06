@@ -90,10 +90,10 @@ export function FreeCheck({ onEscalate }: { onEscalate: (vatNumber: string) => v
           */}
           <div className="gap">
             <p>
-              <strong>The yes/no above is complete, and it is free.</strong> Pay only if you need the consultation
-              number. VIES issues that identifier only when the requester sends their own VAT number — who checked,
-              which number, and when. That is the paid product. It is not an extra legal stamp, and it is not tax
-              advice.
+              <strong>The yes/no above is complete, and it is free.</strong>{" "}
+              Pay only if you need the consultation number. VIES issues that identifier only when the requester sends
+              their own VAT number — who checked, which number, and when. That is the paid product. It is not an extra
+              legal stamp, and it is not tax advice.
             </p>
             <p className="escalate-note">
               One number is {formatMinor(MINIMUM_ORDER_MINOR)} (the minimum), not €0.39. The same{" "}
