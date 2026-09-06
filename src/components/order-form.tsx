@@ -6,7 +6,7 @@ import { CHECKOUT_NETWORK, CHECKOUT_NOT_STARTED, checkoutErrorMessage, readJsonB
 import { CONTACT, OPERATOR_TAX_STATUS } from "@/lib/contact";
 import { exampleVatListText } from "@/lib/demo-vats";
 import { MAX_ROWS, MAX_UPLOAD_BYTES } from "@/lib/limits";
-import { MINIMUM_ORDER_MINOR, formatMinor, quote } from "@/lib/pricing";
+import { MINIMUM_ORDER_MINOR, formatLiveQuoteHint, formatMinor, minimumFloorExplanation, quote } from "@/lib/pricing";
 import { parseVat, parseVatList } from "@/lib/vat";
 
 type ApiOk = { checkoutUrl: string; resultUrl: string };
@@ -244,7 +244,7 @@ export function OrderForm({ seed }: { seed?: OrderFormSeed | null } = {}) {
       <div className="summary">
         <div className="stat">
           <div className="n">{parsed.items.length}</div>
-          <div className="k">to verify</div>
+          <div className="k">billable</div>
         </div>
         <div className="stat">
           <div className="n">{parsed.duplicates.length}</div>
@@ -255,6 +255,18 @@ export function OrderForm({ seed }: { seed?: OrderFormSeed | null } = {}) {
           <div className="k">unusable</div>
         </div>
       </div>
+      {parsed.duplicates.length + parsed.rejected.length > 0 ? (
+        <p className="hint">
+          Charged for {parsed.items.length} billable number{parsed.items.length === 1 ? "" : "s"}
+          {parsed.duplicates.length
+            ? ` · ${parsed.duplicates.length} duplicate${parsed.duplicates.length === 1 ? "" : "s"} removed`
+            : ""}
+          {parsed.rejected.length
+            ? ` · ${parsed.rejected.length} unusable line${parsed.rejected.length === 1 ? "" : "s"} skipped`
+            : ""}
+          .
+        </p>
+      ) : null}
 
       {parsed.rejected.length > 0 ? (
         <div className="notice">
@@ -280,11 +292,7 @@ export function OrderForm({ seed }: { seed?: OrderFormSeed | null } = {}) {
         <div className="pay-price">
           <div className="price">{priced ? formatMinor(priced.totalMinor) : `from ${formatMinor(MINIMUM_ORDER_MINOR)}`}</div>
           <div className="hint">
-            {priced
-              ? `${priced.itemCount} number${priced.itemCount === 1 ? "" : "s"} · ${formatMinor(
-                  priced.effectiveUnitMinor,
-                )} each${priced.minimumApplied ? " (minimum order applied)" : ""} · one-off payment`
-              : `Minimum order ${formatMinor(MINIMUM_ORDER_MINOR)}. Add VAT numbers to see the exact price.`}
+            {priced ? formatLiveQuoteHint(priced) : minimumFloorExplanation()}
           </div>
         </div>
         <button type="button" className="pay-cta" onClick={() => void submit()} disabled={!ready}>

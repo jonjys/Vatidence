@@ -86,3 +86,33 @@ export function formatMinor(minor: number, currency: string = CURRENCY): string 
     currency: currency.toUpperCase(),
   }).format(minor / 100);
 }
+
+/** Smallest batch whose tier subtotal meets the minimum — 13 at today's rates. */
+export function firstCountWithoutMinimum(): number {
+  let n = 1;
+  while (quote(n).minimumApplied) {
+    n += 1;
+    if (n > 10_000) throw new Error("minimum never clears");
+  }
+  return n;
+}
+
+/**
+ * Why a small batch is not €0.39 × N. Used next to the homepage table and
+ * the live quote so the €4.90 floor is visible before Pay.
+ */
+export function minimumFloorExplanation(): string {
+  const min = formatMinor(MINIMUM_ORDER_MINOR);
+  const tier = formatMinor(TIERS[0]!.unitMinor);
+  const clearAt = firstCountWithoutMinimum();
+  return `Minimum order ${min}. The ${tier} figure is the first-tier rate; a batch smaller than ${clearAt} numbers still costs ${min}, so the effective rate is higher until that floor is covered.`;
+}
+
+/** One line under the live total: billable count, floor, effective unit. */
+export function formatLiveQuoteHint(q: Quote): string {
+  if (q.minimumApplied) {
+    const tier = formatMinor(TIERS[0]!.unitMinor);
+    return `${q.itemCount} billable · ${formatMinor(MINIMUM_ORDER_MINOR)} minimum applied (${tier} tier would be ${formatMinor(q.subtotalMinor)}) · effective ${formatMinor(q.effectiveUnitMinor)} each until the minimum is covered · one-off`;
+  }
+  return `${q.itemCount} billable · ${formatMinor(q.effectiveUnitMinor)} each · one-off payment`;
+}

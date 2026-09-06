@@ -93,9 +93,12 @@ export function FreeCheck({ onEscalate }: { onEscalate: (vatNumber: string) => v
               <strong>This answer carries no consultation number.</strong> VIES issues one only when the requester
               gives their own VAT number, and that identifier records who checked, which number, and when.
             </p>
-            <p className="escalate-note">{result.vatNumber} will be added to the list below.</p>
+            <p className="escalate-note">
+              Next step is a paid verification so VIES can issue a consultation number. {result.vatNumber} will be added
+              to the list below.
+            </p>
             <button type="button" className="escalate" onClick={() => onEscalate(result.vatNumber)}>
-              Get the consultation number — from {formatMinor(MINIMUM_ORDER_MINOR)}
+              Start a paid verification — from {formatMinor(MINIMUM_ORDER_MINOR)}
             </button>
           </div>
         </div>

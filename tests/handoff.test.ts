@@ -9,6 +9,17 @@ describe("free-to-paid handoff", () => {
     expect(free).toContain('className="escalate"');
     expect(free).not.toMatch(/className="link"/);
     expect(free).toContain("MINIMUM_ORDER_MINOR");
+    expect(free).toMatch(/Start a paid verification/);
+    expect(free).toMatch(/Next step is a paid verification/);
+  });
+
+  it("makes the €4.90 floor obvious next to the live price and the published table", () => {
+    const home = readFileSync("src/app/page.tsx", "utf8");
+    expect(home).toContain("minimumFloorExplanation");
+    expect(home).toContain("Tier rate per number");
+    expect(form).toContain("formatLiveQuoteHint");
+    expect(form).toContain("minimumFloorExplanation");
+    expect(form).toContain("billable");
   });
 
   it("lands the free-check number in the batch and scrolls to the order form", () => {
