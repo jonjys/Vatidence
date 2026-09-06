@@ -31,7 +31,7 @@ Use a **preview or local** deploy whose `STRIPE_SECRET_KEY` starts with
 
 1. `npm run dev` with `.env` from `.env.example` (test keys only).
 2. Open `/` (or `/sv`). Paste a format-valid VAT in “your own EU VAT number”
-   (e.g. `SE556036079301`) and load the example list, or type one number.
+   (e.g. the public sample `DE811907980`) and load the example list, or type one number.
 3. Confirm the live quote shows the **€4.90 minimum** for a small batch, and
    the pay button reads **Pay and verify** only once both fields are valid.
    If the requester VAT is empty the button must say **Enter your VAT number

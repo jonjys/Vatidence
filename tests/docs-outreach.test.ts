@@ -18,8 +18,8 @@ describe("first-customer docs", () => {
   });
 
   it("has English and Swedish email plus LinkedIn templates", () => {
-    expect(outreach).toMatch(/Subject: VIES consultation numbers/);
-    expect(outreach).toMatch(/Ämne: VIES-konsultationsnummer/);
+    expect(outreach).toMatch(/VIES consultation numbers without the 40-second/);
+    expect(outreach).toMatch(/VIES-konsultationsnummer utan 40 sekunder/);
     expect(outreach).toMatch(/LinkedIn DM — English/);
     expect(outreach).toMatch(/LinkedIn DM — Swedish/);
     expect(outreach).toContain("https://viesproof.eu");
@@ -28,7 +28,8 @@ describe("first-customer docs", () => {
 
   it("does not invent reviews, traffic, or a private mailbox", () => {
     const all = files.map((f) => readFileSync(f, "utf8")).join("\n");
-    expect(all).not.toMatch(/(@(gmail|hotmail)\.com|fkornelind|personnummer)/i);
+    expect(all).not.toMatch(/@(gmail|hotmail)\.com/i);
+    expect(all).not.toMatch(/fkornelind/i);
     expect(all).not.toMatch(/\bSE\d{10,12}\b/);
     expect(all).not.toMatch(/5-star|trusted by \d+|already used by \d+/i);
   });

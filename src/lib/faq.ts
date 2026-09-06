@@ -4,7 +4,8 @@
  *
  * Claims stay inside what VIES actually does: a consultation number is issued
  * when the requester identifies itself; "not valid" is an answer; unanswered
- * rows are refunded. No auditor-acceptance, no "official proof", no "only way".
+ * rows are refunded. Honesty tests in tests/contact.test.ts forbid the phrases
+ * we do not have standing to publish.
  */
 
 export type FaqItem = { q: string; a: string };
@@ -36,7 +37,7 @@ export const FAQ_EN: readonly FaqItem[] = [
   },
   {
     q: "Do I need an account?",
-    a: "No. Paste a list, pay once, keep the order URL. That URL is the only way back to the PDF and CSV. Results stay retrievable for 90 days, then the identifying data is erased.",
+    a: "No. Paste a list, pay once, keep the order URL. That URL is how you reach the PDF and CSV again. Results stay retrievable for 90 days, then the identifying data is erased.",
   },
   {
     q: "Who operates this?",

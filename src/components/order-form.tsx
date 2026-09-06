@@ -184,8 +184,10 @@ export function OrderForm({ seed }: { seed?: OrderFormSeed | null } = {}) {
       ) : null}
       {canceled ? (
         <p className="notice">
-          Checkout was cancelled. Nothing was charged. Your list is below — enter your own VAT number and pay when you
-          are ready.
+          Checkout was cancelled. Nothing was charged.
+          {relist?.state === "ready"
+            ? " Your list is below — enter your own VAT number and pay when you are ready."
+            : " Enter your own VAT number and the numbers to verify when you are ready."}
         </p>
       ) : null}
       {seedNotice ? <p className="notice">{seedNotice}</p> : null}

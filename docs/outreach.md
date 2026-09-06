@@ -5,8 +5,8 @@ A short note to someone who already files reverse-charge invoices is the whole
 channel this product can afford at a €4.90 floor.
 
 Identity on the site, and only that: **Nytto Labs**, operated by **Fredrik Kornelind**,
-Sweden, approved for F-tax, VAT-registered. Do not attach a personnummer, a private
-mailbox, or invented reviews.
+Sweden, approved for F-tax, VAT-registered. Do not attach a Swedish personal
+identity number, a private mailbox, or invented reviews.
 
 ---
 
