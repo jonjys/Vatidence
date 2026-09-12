@@ -11,8 +11,8 @@ export default function HomePage() {
         <h1>Bulk EU VAT checks, with the consultation number.</h1>
         <p className="lede">
           Checked against the European Commission&apos;s VIES service with your own VAT number attached — that is how
-          VIES issues a consultation number, recording who checked which number and when. Sealed PDF and CSV,
-          immediately.
+          VIES issues a consultation number, recording who checked which number and when. Sealed PDF and CSV as soon as
+          every row resolves, usually within seconds — a member state outage can delay a row, never the charge.
         </p>
       </div>
 
@@ -29,8 +29,9 @@ export default function HomePage() {
       <p>
         Checking a VAT number on the VIES website without entering your own VAT number returns a yes/no and nothing else.
         Enter your own number and VIES returns a unique consultation number that records who checked, which number, and
-        when. This service always sends the requester identity, so the paid result includes that number. Doing that by
-        hand is roughly forty seconds per number, plus transcription into a spreadsheet.
+        when — VIES itself will give you this for a single lookup. This service always sends the requester identity, so
+        every paid row includes that number without you typing it in by hand. The value on top of the free VIES site is
+        doing that for a whole list at once and getting back a sealed, importable record instead of one screen at a time.
       </p>
 
       <h2>Price</h2>
@@ -63,7 +64,11 @@ export default function HomePage() {
 
       <h2>What you receive</h2>
       <ul>
-        <li>A PDF evidence pack: one row per VAT number, with the VIES consultation number, timestamp and registered name.</li>
+        <li>
+          A PDF evidence pack: one row per VAT number, with the VIES consultation number and timestamp — plus the
+          registered name and address when the member state discloses them (several, Germany included, disclose only
+          validity).
+        </li>
         <li>A CSV of the same data for your ledger or ERP import.</li>
         <li>A SHA-256 integrity seal over the result set, printed on every page of the PDF.</li>
       </ul>
