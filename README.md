@@ -190,12 +190,15 @@ src/lib/evidence.ts     canonical result set, SHA-256 seal, CSV, PDF
 src/lib/stripe.ts       checkout, refunds, true fee lookup for the ledger
 src/lib/http.ts         guard(): any unhandled route failure becomes a clean 503
 src/lib/site.ts         the public origin, resolved at build time
+src/lib/contact.ts      operator identity and per-purpose inboxes, one source of truth
+src/lib/checkout-error.ts  customer-facing wording for a checkout that never started
+src/lib/demo-vats.ts    format-valid sample numbers for "Load example list"
 src/components/         the free check, the order form, the live result panel
 src/app/api/check       the free single-number check — no requester, no record
 src/app/api/orders/…    create, status, re-run a previous list, PDF, CSV
 src/app/api/…           stripe webhook, cron sweep, health
 db/migrations/          schema, applied by scripts/migrate.ts
-tests/                  155 tests; see below
+tests/                  186 tests; see below
 ```
 
 ### Ledger
@@ -222,7 +225,7 @@ FROM ledger_entries GROUP BY 1 ORDER BY 1 DESC;
 npm install
 npm run lint        # eslint, zero warnings
 npm run typecheck   # tsc --noEmit, strict + noUncheckedIndexedAccess
-npm test            # 83 tests with no external dependencies
+npm test            # 136 tests with no external dependencies
 npm run build       # migrations (skipped without DATABASE_URL) + next build
 npm run verify      # all of the above
 ```
@@ -232,7 +235,7 @@ Two further suites opt in through environment variables:
 ```bash
 # Runs the real production SQL and the real HTTP handlers against a Postgres.
 createdb viesproof_test
-TEST_DATABASE_URL="postgres://localhost/viesproof_test" npm test  # 155 tests
+TEST_DATABASE_URL="postgres://localhost/viesproof_test" npm test  # 186 tests
 
 # Checks the live VIES contract has not changed (hits the European Commission).
 RUN_LIVE_VIES=1 npm test

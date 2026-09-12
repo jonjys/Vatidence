@@ -128,7 +128,7 @@ npm run lint && npm run typecheck && npm test && npm run build   # npm run verif
 
 Three suites, two of them opt-in:
 
-- default: 83 tests, no external dependencies.
+- default: 136 tests, no external dependencies.
 - `TEST_DATABASE_URL=postgres://…` adds the Postgres-backed suites: the real
   production SQL, and the whole HTTP money path from `POST /api/orders`
   through a signed Stripe webhook to an automatically refunded, delivered
