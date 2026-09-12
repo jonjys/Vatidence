@@ -147,7 +147,7 @@ export function OrderForm({ seed }: { seed?: OrderFormSeed | null } = {}) {
       }
       // Keep the result link locally so a closed tab is never a lost order.
       try {
-        localStorage.setItem("viesproof:last-result", ok.resultUrl);
+        localStorage.setItem("vatidence:last-result", ok.resultUrl);
       } catch {
         // private browsing; the success redirect still carries the link
       }

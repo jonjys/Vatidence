@@ -15,8 +15,8 @@
 
 export const CONTACT = {
   /** The product. */
-  product: "VIESProof",
-  productUrl: "https://viesproof.eu",
+  product: "Vatidence",
+  productUrl: "https://vatidence.nyttolabs.com",
 
   /** The legal operator behind it. */
   operator: "Nytto Labs",

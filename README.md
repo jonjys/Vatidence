@@ -1,6 +1,6 @@
-# VIESProof
+# Vatidence
 
-**Live:** [viesproof.eu](https://viesproof.eu) · **Repo:** [jonjys/viesproof](https://github.com/jonjys/viesproof)
+**Live:** [vatidence.nyttolabs.com](https://vatidence.nyttolabs.com) · **Repo:** [jonjys/viesproof](https://github.com/jonjys/viesproof)
 
 A machine that sits between EU businesses and the European Commission's VIES
 service, and charges per verified VAT number.
@@ -10,8 +10,10 @@ who needs proof pastes a list, pays, and gets back every official VIES
 **consultation number** plus a sealed PDF/CSV evidence pack. No account, no
 login, no dashboard, no subscription. Nobody operates it.
 
-> The Postgres schema is called `vatproof`, not `viesproof`. That is
-> deliberate and load-bearing — see [Operating notes](#operating-notes).
+> The Postgres schema is called `vatproof` and the GitHub repo `viesproof` —
+> both older names of this product, kept deliberately: one is a live schema in
+> a database shared with other applications, and renaming either buys nothing.
+> See [Operating notes](#operating-notes).
 
 ---
 
@@ -193,12 +195,13 @@ src/lib/site.ts         the public origin, resolved at build time
 src/lib/contact.ts      operator identity and per-purpose inboxes, one source of truth
 src/lib/checkout-error.ts  customer-facing wording for a checkout that never started
 src/lib/demo-vats.ts    format-valid sample numbers for "Load example list"
+src/middleware.ts       301s the old viesproof.eu domain to this one, except /api/*
 src/components/         the free check, the order form, the live result panel
 src/app/api/check       the free single-number check — no requester, no record
 src/app/api/orders/…    create, status, re-run a previous list, PDF, CSV
 src/app/api/…           stripe webhook, cron sweep, health
 db/migrations/          schema, applied by scripts/migrate.ts
-tests/                  186 tests; see below
+tests/                  190 tests; see below
 ```
 
 ### Ledger
@@ -225,7 +228,7 @@ FROM ledger_entries GROUP BY 1 ORDER BY 1 DESC;
 npm install
 npm run lint        # eslint, zero warnings
 npm run typecheck   # tsc --noEmit, strict + noUncheckedIndexedAccess
-npm test            # 136 tests with no external dependencies
+npm test            # 140 tests with no external dependencies
 npm run build       # migrations (skipped without DATABASE_URL) + next build
 npm run verify      # all of the above
 ```
@@ -234,8 +237,8 @@ Two further suites opt in through environment variables:
 
 ```bash
 # Runs the real production SQL and the real HTTP handlers against a Postgres.
-createdb viesproof_test
-TEST_DATABASE_URL="postgres://localhost/viesproof_test" npm test  # 186 tests
+createdb vatproof_test
+TEST_DATABASE_URL="postgres://localhost/vatproof_test" npm test  # 190 tests
 
 # Checks the live VIES contract has not changed (hits the European Commission).
 RUN_LIVE_VIES=1 npm test
@@ -291,9 +294,12 @@ Nobody has to approve an order, answer a customer, or watch a dashboard.
 
 ### What it costs to stay alive
 
-The domain renewal, and nothing else that scales. Vercel Hobby, the Neon free
-branch and VIES are all free at this volume; Stripe takes its fee per
-transaction and nothing when there are none. An idle month costs the domain.
+Nothing that scales. Vatidence lives on a subdomain of `nyttolabs.com`, which
+was already owned, so there is no separate renewal for it. `viesproof.eu` is
+being kept renewed only to serve the redirect for old links, and can be let go
+once traffic to it is negligible. Vercel Hobby, the Neon free branch and VIES
+are all free at this volume; Stripe takes its fee per transaction and nothing
+when there are none.
 
 ### How you would know something is wrong
 
@@ -322,11 +328,18 @@ change worth making is to the pricing shape rather than to the code.
 
 ## Operating notes
 
-- **Its own schema, under its old name.** Every table lives in the `vatproof`
-  schema, not `public`. The product was renamed to VIESProof; the schema was
-  not, because it is live in a shared database and renaming it would need a
-  migration for no benefit. Two Stripe idempotency key prefixes are frozen
-  for the same reason, and say so in the code.
+- **Its own schema, under a much older name.** Every table lives in the
+  `vatproof` schema, not `public`. The product has been renamed twice since
+  (VIESProof, now Vatidence); the schema never was, because it is live in a
+  shared database and renaming it would need a migration for no benefit. Two
+  Stripe idempotency key prefixes are frozen for the same reason, and say so
+  in the code.
+- **Domain migration by redirect, not a hard cut.** The product moved from
+  `viesproof.eu` to `vatidence.nyttolabs.com`. `src/middleware.ts` 301s the old
+  apex and `www` to the new domain for every path except `/api/*`, because
+  Stripe does not follow redirects on webhook deliveries — the webhook keeps
+  working at the old URL, unmodified, until its endpoint is updated by hand in
+  the Stripe dashboard.
   If you point `DATABASE_URL` at a database another application already uses,
   nothing collides — and `CREATE TABLE IF NOT EXISTS` cannot silently adopt a
   foreign table that happens to be called `orders` or `rate_limits`. If an

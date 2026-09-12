@@ -45,7 +45,7 @@ export async function GET(): Promise<Response> {
   return Response.json(
     {
       ok,
-      service: "viesproof",
+      service: "vatidence",
       time: new Date().toISOString(),
       checks: {
         env: config.ok ? { ok: true } : { ok: false, detail: `missing/invalid: ${config.missing.join(", ")}` },

@@ -49,7 +49,7 @@ export default function PrivacyPage() {
       </p>
       <p>
         The controller is {OPERATOR_IDENTITY}, which operates {CONTACT.product} at{" "}
-        <a href={CONTACT.productUrl}>viesproof.eu</a>. Data-protection requests reach a person fastest at the address
+        <a href={CONTACT.productUrl}>vatidence.nyttolabs.com</a>. Data-protection requests reach a person fastest at the address
         above; anything else can go to <a href={`mailto:${CONTACT.email.general}`}>{CONTACT.email.general}</a>.
       </p>
     </>

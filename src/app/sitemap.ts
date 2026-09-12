@@ -13,7 +13,7 @@ import { siteUrl } from "@/lib/site";
  * It is content metadata, not a build timestamp: bump it when these pages
  * change, and leave it alone for a deploy that does not touch them.
  */
-const LEGAL_LAST_MODIFIED = "2026-09-04";
+const LEGAL_LAST_MODIFIED = "2026-09-12";
 const HOME_LAST_MODIFIED = "2026-09-12";
 
 export default function sitemap(): MetadataRoute.Sitemap {

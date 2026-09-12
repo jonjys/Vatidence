@@ -38,14 +38,14 @@ describe("environment validation", () => {
   });
 
   it("strips a trailing slash from APP_URL so generated URLs never double up", () => {
-    withEnv({ ...REQUIRED, APP_URL: "https://viesproof.eu/" }, () => {
-      expect(env().APP_URL).toBe("https://viesproof.eu");
+    withEnv({ ...REQUIRED, APP_URL: "https://vatidence.nyttolabs.com/" }, () => {
+      expect(env().APP_URL).toBe("https://vatidence.nyttolabs.com");
     });
-    withEnv({ ...REQUIRED, APP_URL: "https://viesproof.eu///" }, () => {
-      expect(env().APP_URL).toBe("https://viesproof.eu");
+    withEnv({ ...REQUIRED, APP_URL: "https://vatidence.nyttolabs.com///" }, () => {
+      expect(env().APP_URL).toBe("https://vatidence.nyttolabs.com");
     });
-    withEnv({ ...REQUIRED, APP_URL: "https://viesproof.eu" }, () => {
-      expect(env().APP_URL).toBe("https://viesproof.eu");
+    withEnv({ ...REQUIRED, APP_URL: "https://vatidence.nyttolabs.com" }, () => {
+      expect(env().APP_URL).toBe("https://vatidence.nyttolabs.com");
     });
   });
 
@@ -57,7 +57,7 @@ describe("environment validation", () => {
 
   it("keeps the statement descriptor suffix inside Stripe's limits", () => {
     withEnv(REQUIRED, () => {
-      expect(env().STRIPE_STATEMENT_SUFFIX).toBe("VIESPROOF");
+      expect(env().STRIPE_STATEMENT_SUFFIX).toBe("VATIDENCE");
     });
     withEnv({ ...REQUIRED, STRIPE_STATEMENT_SUFFIX: "WAY-TOO-LONG-SUFFIX" }, () => {
       expect(() => env()).toThrow(/STRIPE_STATEMENT_SUFFIX/);

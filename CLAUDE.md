@@ -1,14 +1,23 @@
 # Working on this repo
 
-VIESProof (viesproof.eu): a free single-number VAT check as the way in, and
-paid batch verification against the European Commission's VIES service that
-delivers official consultation numbers plus a sealed PDF/CSV evidence pack.
-See README.md for what it does and why.
+Vatidence (vatidence.nyttolabs.com): a free single-number VAT check as the way
+in, and paid batch verification against the European Commission's VIES service
+that delivers official consultation numbers plus a sealed PDF/CSV evidence
+pack. See README.md for what it does and why.
 
-**The product is VIESProof; the Postgres schema is `vatproof`.** The schema was
-not renamed with the product - it is live in a database shared with other
-applications. Two Stripe idempotency key prefixes are frozen for the same
-reason. Both are commented in the code; do not "tidy" either.
+**The product is Vatidence; the Postgres schema is `vatproof` and the GitHub
+repo is `viesproof`.** Neither was renamed along with the product - the schema
+is live in a database shared with other applications, and the repo name is
+purely cosmetic history. Two Stripe idempotency key prefixes are frozen for
+the same reason as the schema. All three are commented in the code where
+relevant; do not "tidy" any of them.
+
+**The product was VIESProof (viesproof.eu) before this.** `src/middleware.ts`
+301-redirects `viesproof.eu` and `www.viesproof.eu` to the new domain for every
+path except `/api/*` - Stripe's webhook does not follow redirects on delivery,
+so excluding `/api/*` keeps it working at the old URL, unmodified, until its
+endpoint is updated by hand in the Stripe dashboard. `viesproof.eu` stays
+registered only to serve that redirect.
 
 This file records the things that are not visible from the code and that cost
 real time to discover.
@@ -128,7 +137,7 @@ npm run lint && npm run typecheck && npm test && npm run build   # npm run verif
 
 Three suites, two of them opt-in:
 
-- default: 136 tests, no external dependencies.
+- default: 140 tests, no external dependencies.
 - `TEST_DATABASE_URL=postgres://…` adds the Postgres-backed suites: the real
   production SQL, and the whole HTTP money path from `POST /api/orders`
   through a signed Stripe webhook to an automatically refunded, delivered

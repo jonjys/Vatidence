@@ -49,7 +49,7 @@ async function main(): Promise<void> {
     // The application owns a schema of its own; see 0001_init.sql for why.
     // The schema keeps its original name. It is the live schema in a database
     // shared with other applications; renaming it would need a migration and
-    // buy nothing. The product is VIESProof, the schema is `vatproof`.
+    // buy nothing. The product is Vatidence, the schema is `vatproof`.
     await client.query("CREATE SCHEMA IF NOT EXISTS vatproof");
 
     await client.query(`CREATE TABLE IF NOT EXISTS vatproof.schema_migrations (

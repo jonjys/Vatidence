@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-process.env.APP_URL = "https://viesproof.eu/";
+process.env.APP_URL = "https://vatidence.nyttolabs.com/";
 
 const { default: sitemap } = await import("@/app/sitemap");
 const { default: robots } = await import("@/app/robots");
@@ -23,11 +23,11 @@ describe("sitemap", () => {
 
   it("lists exactly the public pages, absolute and without a double slash", () => {
     expect(sitemap().map((e) => e.url)).toEqual([
-      "https://viesproof.eu/",
-      "https://viesproof.eu/contact",
-      "https://viesproof.eu/terms",
-      "https://viesproof.eu/refunds",
-      "https://viesproof.eu/privacy",
+      "https://vatidence.nyttolabs.com/",
+      "https://vatidence.nyttolabs.com/contact",
+      "https://vatidence.nyttolabs.com/terms",
+      "https://vatidence.nyttolabs.com/refunds",
+      "https://vatidence.nyttolabs.com/privacy",
     ]);
   });
 
@@ -45,6 +45,6 @@ describe("robots", () => {
     );
     expect(disallow).toContain("/r/");
     expect(disallow).toContain("/api/");
-    expect(r.sitemap).toBe("https://viesproof.eu/sitemap.xml");
+    expect(r.sitemap).toBe("https://vatidence.nyttolabs.com/sitemap.xml");
   });
 });

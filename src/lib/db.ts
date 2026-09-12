@@ -31,7 +31,7 @@ export interface PoolLike {
   connect(): Promise<ClientLike>;
 }
 
-type GlobalWithPool = typeof globalThis & { __viesproofPool?: PoolLike };
+type GlobalWithPool = typeof globalThis & { __vatidencePool?: PoolLike };
 
 let override: PoolLike | null = null;
 
@@ -44,10 +44,10 @@ export function setPoolForTesting(next: PoolLike | null): void {
 export function pool(): PoolLike {
   if (override) return override;
   const g = globalThis as GlobalWithPool;
-  if (!g.__viesproofPool) {
-    g.__viesproofPool = new Pool({ connectionString: env().DATABASE_URL, max: 3 }) as unknown as PoolLike;
+  if (!g.__vatidencePool) {
+    g.__vatidencePool = new Pool({ connectionString: env().DATABASE_URL, max: 3 }) as unknown as PoolLike;
   }
-  return g.__viesproofPool;
+  return g.__vatidencePool;
 }
 
 export async function query<T extends Record<string, unknown>>(text: string, params: unknown[] = []): Promise<T[]> {

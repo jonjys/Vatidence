@@ -1,5 +1,5 @@
 {
-  "name": "viesproof",
+  "name": "vatidence",
   "version": "1.0.0",
   "private": true,
   "description": "Automated EU VAT (VIES) verification machine: paid batch checks with official consultation numbers and a sealed evidence pack.",

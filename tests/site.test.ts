@@ -8,13 +8,15 @@ describe("resolveSiteUrl", () => {
   });
 
   it("strips trailing slashes so generated URLs never double up", () => {
-    expect(resolveSiteUrl("https://viesproof.eu/", undefined)).toBe("https://viesproof.eu");
-    expect(resolveSiteUrl("https://viesproof.eu///", "production")).toBe("https://viesproof.eu");
+    expect(resolveSiteUrl("https://vatidence.nyttolabs.com/", undefined)).toBe("https://vatidence.nyttolabs.com");
+    expect(resolveSiteUrl("https://vatidence.nyttolabs.com///", "production")).toBe(
+      "https://vatidence.nyttolabs.com",
+    );
   });
 
   it("uses the canonical product origin on Vercel when APP_URL is unset", () => {
-    expect(resolveSiteUrl(undefined, "production")).toBe("https://viesproof.eu");
-    expect(resolveSiteUrl(undefined, "preview")).toBe("https://viesproof.eu");
+    expect(resolveSiteUrl(undefined, "production")).toBe("https://vatidence.nyttolabs.com");
+    expect(resolveSiteUrl(undefined, "preview")).toBe("https://vatidence.nyttolabs.com");
   });
 
   it("refuses to ship localhost in Vercel metadata", () => {
@@ -27,11 +29,11 @@ describe("resolveSiteUrl", () => {
     // `new URL(siteUrl)` in the layout dies with a bare "Invalid URL".
     expect(resolveSiteUrl("", undefined)).toBe("http://localhost:3000");
     expect(resolveSiteUrl("   ", undefined)).toBe("http://localhost:3000");
-    expect(resolveSiteUrl("", "production")).toBe("https://viesproof.eu");
+    expect(resolveSiteUrl("", "production")).toBe("https://vatidence.nyttolabs.com");
     expect(() => new URL(resolveSiteUrl("", undefined))).not.toThrow();
   });
 
   it("keeps an explicit public APP_URL in production", () => {
-    expect(resolveSiteUrl("https://viesproof.eu", "production")).toBe("https://viesproof.eu");
+    expect(resolveSiteUrl("https://vatidence.nyttolabs.com", "production")).toBe("https://vatidence.nyttolabs.com");
   });
 });

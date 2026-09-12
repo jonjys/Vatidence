@@ -11,7 +11,7 @@ import "./globals.css";
 // from a snippet written before the free check existed. The snippet is the
 // only advertisement this site has; it should lead with the thing anyone can
 // do without deciding to trust it first.
-const TITLE = "VIESProof - bulk EU VAT checks with VIES consultation numbers";
+const TITLE = "Vatidence - bulk EU VAT checks with VIES consultation numbers";
 const DESCRIPTION =
   "Check one EU VAT number free, instantly. Or verify a whole list and get every VIES consultation number in a sealed PDF and CSV. No account.";
 
@@ -27,7 +27,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     url: siteUrl,
-    siteName: "VIESProof",
+    siteName: "Vatidence",
     title: TITLE,
     description: DESCRIPTION,
     locale: "en_GB",
@@ -42,7 +42,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <main>
           <header className="masthead">
             <Link href="/" className="wordmark">
-              VIES<span>Proof</span>
+              Vat<span>idence</span>
             </Link>
             <span className="kicker">EU VAT verification</span>
           </header>
