@@ -3,19 +3,19 @@ import { CONTACT } from "@/lib/contact";
 import { env } from "@/lib/env";
 import type { RefundGateway } from "@/lib/refunds";
 
-type GlobalWithStripe = typeof globalThis & { __viesproofStripe?: Stripe };
+type GlobalWithStripe = typeof globalThis & { __vatidenceStripe?: Stripe };
 
 export function stripe(): Stripe {
   const g = globalThis as GlobalWithStripe;
-  if (!g.__viesproofStripe) {
-    g.__viesproofStripe = new Stripe(env().STRIPE_SECRET_KEY, {
+  if (!g.__vatidenceStripe) {
+    g.__vatidenceStripe = new Stripe(env().STRIPE_SECRET_KEY, {
       apiVersion: "2025-08-27.basil",
       maxNetworkRetries: 3,
       timeout: 20_000,
-      appInfo: { name: "viesproof", version: "1.0.0" },
+      appInfo: { name: "vatidence", version: "1.0.0" },
     });
   }
-  return g.__viesproofStripe;
+  return g.__vatidenceStripe;
 }
 
 export const stripeRefunds: RefundGateway = {
@@ -103,7 +103,7 @@ function checkoutParams(input: CheckoutInput): Stripe.Checkout.SessionCreatePara
     ],
     metadata: { order_id: input.orderId, public_token: input.publicToken },
     payment_intent_data: {
-      description: `VIESProof order ${input.orderId}`,
+      description: `${CONTACT.product} order ${input.orderId}`,
       metadata: { order_id: input.orderId, public_token: input.publicToken },
       // Without this the charge shows only the Stripe account's own name,
       // which a customer who bought VAT evidence will not recognise weeks

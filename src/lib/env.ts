@@ -30,7 +30,7 @@ const schema = z.object({
 
   /**
    * Appended to the account-wide statement descriptor prefix, so a charge reads
-   * e.g. "FREDCAST.S* VIESPROOF" on the cardholder's statement instead of only
+   * e.g. "FREDCAST.S* VATIDENCE" on the cardholder's statement instead of only
    * the account name. Stripe caps prefix + "* " + suffix at 22 characters and
    * the prefix can be up to 10, so 10 is the longest suffix that is always safe.
    * An unrecognised descriptor is the most common cause of chargebacks.
@@ -41,7 +41,7 @@ const schema = z.object({
     .max(10)
     .regex(/^[A-Za-z0-9 .\-]+$/, "STRIPE_STATEMENT_SUFFIX may only contain letters, digits, spaces, dots and hyphens")
     .regex(/[A-Za-z]/, "STRIPE_STATEMENT_SUFFIX must contain at least one letter")
-    .default("VIESPROOF"),
+    .default("VATIDENCE"),
 
   STRIPE_TAX_ENABLED: z
     .enum(["true", "false"])

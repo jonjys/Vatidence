@@ -175,7 +175,7 @@ export async function toPdf(doc: EvidenceDocument, generatedAt: Date): Promise<U
   const pdf = await PDFDocument.create();
   pdf.setTitle(`VIES verification evidence ${doc.orderReference}`);
   pdf.setAuthor(CONTACT.operator);
-  pdf.setCreator("VIESProof");
+  pdf.setCreator("Vatidence");
 
   const font = await pdf.embedFont(StandardFonts.Helvetica);
   const bold = await pdf.embedFont(StandardFonts.HelveticaBold);

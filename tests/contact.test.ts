@@ -39,7 +39,7 @@ describe("published contact details", () => {
     expect(OPERATOR_IDENTITY).toBe("Nytto Labs, operated by Fredrik Kornelind, Sweden");
     expect(CONTACT.operatedBy).toBe("Fredrik Kornelind");
     expect(CONTACT.legalForm).toBe("Swedish sole trader");
-    expect(CONTACT.productUrl).toBe("https://viesproof.eu");
+    expect(CONTACT.productUrl).toBe("https://vatidence.nyttolabs.com");
     expect(CONTACT.operatorUrl).toBe("https://nyttolabs.com");
   });
 

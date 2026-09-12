@@ -31,8 +31,8 @@ export default function OpengraphImage() {
         }}
       >
         <div style={{ display: "flex", alignItems: "baseline", marginBottom: 40 }}>
-          <span style={{ fontSize: 40, fontWeight: 700, color: INK }}>VIES</span>
-          <span style={{ fontSize: 40, fontWeight: 700, color: ACCENT }}>Proof</span>
+          <span style={{ fontSize: 40, fontWeight: 700, color: INK }}>Vat</span>
+          <span style={{ fontSize: 40, fontWeight: 700, color: ACCENT }}>idence</span>
         </div>
         <div style={{ display: "flex", fontSize: 56, fontWeight: 700, color: INK, lineHeight: 1.15, maxWidth: 920 }}>
           Bulk EU VAT checks, with the VIES consultation number.
