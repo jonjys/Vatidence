@@ -10,10 +10,10 @@ import { ImageResponse } from "next/og";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
-const ACCENT = "#12467f";
-const INK = "#14161c";
-const MUTED = "#5b6172";
-const BG = "#f7f8fa";
+const ACCENT = "#17e39a";
+const INK = "#f4f7fb";
+const MUTED = "#9aa4b6";
+const BG = "#03030c";
 
 export default function OpengraphImage() {
   return new ImageResponse(

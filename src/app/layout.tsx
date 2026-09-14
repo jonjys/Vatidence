@@ -38,10 +38,21 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
+        <link
+          rel="stylesheet"
+          href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Instrument+Sans:wght@400;500;600;700;800&display=swap"
+        />
+      </head>
       <body>
         <main>
           <header className="masthead">
-            <Link href="/" className="wordmark">
+            <Link href="/" className="wordmark" style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <span className="mark" aria-hidden="true">
+                <span />
+              </span>
               Vat<span>idence</span>
             </Link>
             <span className="kicker">EU VAT verification</span>
