@@ -61,7 +61,7 @@ export default function TermsPage() {
       <h2>7. Contact</h2>
       <p>
         {CONTACT.product} is operated by {CONTACT.operator} (<a href={CONTACT.operatorUrl}>nyttolabs.com</a>), a{" "}
-        {CONTACT.legalForm} operated by {CONTACT.operatedBy}. {OPERATOR_TAX_STATUS}
+        {CONTACT.legalForm}. {OPERATOR_TAX_STATUS}
       </p>
       <ul>
         <li>

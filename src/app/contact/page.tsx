@@ -9,10 +9,6 @@ export const metadata: Metadata = {
   alternates: { canonical: "/contact" },
 };
 
-/**
- * One inbox per kind of question. A customer should never have to guess, and a
- * data-protection request should never arrive in a billing thread.
- */
 const ROUTES = [
   {
     what: "An order that misbehaved",
@@ -41,8 +37,7 @@ export default function ContactPage() {
     <>
       <h1>Contact</h1>
       <p className="lede">
-        {CONTACT.product} is operated by {OPERATOR_LINE}. There is no support queue and no ticket form — these go to a
-        person.
+        {CONTACT.product} is operated by {OPERATOR_LINE}. There is no support queue and no ticket form.
       </p>
 
       {ROUTES.map((route) => (
@@ -58,8 +53,6 @@ export default function ContactPage() {
       <h2>Operator</h2>
       <p>
         {CONTACT.operator} — <a href={CONTACT.operatorUrl}>nyttolabs.com</a>
-        <br />
-        Operated by {CONTACT.operatedBy}
         <br />
         {CONTACT.country}
         <br />
