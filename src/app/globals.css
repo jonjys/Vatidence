@@ -544,7 +544,7 @@ th { font-family: var(--mono); font-size: 0.68rem; font-weight: 500; text-transf
   font-family: var(--mono);
   font-size: 0.75rem;
 }
-.gap-id s { color: var(--muted); }
+.gap-id em { font-style: normal; color: var(--muted); }
 
 /* ── Homepage sections ─────────────────────────────────────────────────── */
 

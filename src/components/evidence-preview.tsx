@@ -7,12 +7,12 @@ import { CONTACT, OPERATOR_IDENTITY } from "@/lib/contact";
  * sample numbers; the consultation numbers and the seal are illustrative.
  */
 const ROWS = [
-  { vat: "DE811907980", status: "VALID", id: "WAPIAAAAaBDiifgO", name: "-" },
+  { vat: "DE130745279", status: "VALID", id: "WAPIAAAAaBDiifgO", name: "-" },
   { vat: "FR40303265045", status: "VALID", id: "8ed996c1-28db-4c1e-9d0a-51f2", name: "SA SODIMAS" },
-  { vat: "IT00743110157", status: "VALID", id: "WAPIAAAAaBDk2mQx", name: "MOTOROLA SOLUTIONS ITALIA SRL" },
+  { vat: "SE556566943801", status: "VALID", id: "WAPIAAAAaBDk2mQx", name: "MOSSLUNDA SNICKERI AB" },
   { vat: "NL004495445B01", status: "VALID", id: "WAPIAAAAaBDk3Rtw", name: "OPENJONGERENVERENIGING DE KOORNBEURS" },
   { vat: "BE0123456789", status: "NOT VALID", id: "n/a (not valid)", name: "-" },
-  { vat: "ESA28015865", status: "VALID", id: "c41b07e2-9f3a-47d0-8e61-0b3c", name: "-" },
+  { vat: "IE8280018G", status: "VALID", id: "c41b07e2-9f3a-47d0-8e61-0b3c", name: "COMBILIFT UNLIMITED COMPANY" },
 ] as const;
 
 const SEAL = "3f9a0c7e51d24b88a6e03c91f7d25b4e0a8c6d13e97f24b5c0d8a1e6f3b92c47";

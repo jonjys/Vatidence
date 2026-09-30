@@ -6,11 +6,11 @@
  * because member states issue them in different formats.
  */
 const ROWS = [
-  { vat: "DE811907980", ok: true, id: "WAPIAAAAaBDiifgO" },
+  { vat: "DE130745279", ok: true, id: "WAPIAAAAaBDiifgO" },
   { vat: "FR40303265045", ok: true, id: "8ed996c1-28db-4c1e" },
-  { vat: "IT00743110157", ok: true, id: "WAPIAAAAaBDk2mQx" },
+  { vat: "IE8280018G", ok: true, id: "WAPIAAAAaBDk2mQx" },
   { vat: "NL123456789B01", ok: false, id: "n/a (not valid)" },
-  { vat: "SE556703748501", ok: true, id: "c41b07e2-9f3a-47d0" },
+  { vat: "SE556566943801", ok: true, id: "c41b07e2-9f3a-47d0" },
 ] as const;
 
 export function HeroScene() {
@@ -36,9 +36,9 @@ export function HeroScene() {
             <div className="layer">
               <p className="s-title">Your list</p>
               <div className="s-lines">
-                <span>DE811907980</span>
+                <span>DE130745279</span>
                 <span>FR40303265045</span>
-                <span>IT00743110157</span>
+                <span>IE8280018G</span>
                 <span>NL123456789B01</span>
                 <span className="more">+ 96 more…</span>
               </div>

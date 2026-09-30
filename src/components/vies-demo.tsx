@@ -85,7 +85,7 @@ export function ViesDemo() {
           <pre>
             {"{\n"}
             <span className="k">  &quot;countryCode&quot;</span>: <span className="s">&quot;IE&quot;</span>,{"\n"}
-            <span className="k">  &quot;vatNumber&quot;</span>: <span className="s">&quot;6388047V&quot;</span>,{"\n"}
+            <span className="k">  &quot;vatNumber&quot;</span>: <span className="s">&quot;8280018G&quot;</span>,{"\n"}
             <span className="k">  &quot;valid&quot;</span>: <span className="t">true</span>,{"\n"}
             <span className="k">  &quot;requestDate&quot;</span>: <span className="s">&quot;2026-09-30T11:11:38Z&quot;</span>,{"\n"}
             {"  "}

@@ -13,7 +13,7 @@ const DEFAULT_STOP = STOPS.indexOf(100);
 /** Labels under the slider, placed at their own stop so the scale reads true. */
 const SCALE = [1, 100, 1000, MAX_ROWS] as const;
 
-/** A rough, stated assumption: one manual lookup on the VIES website. */
+/** An estimate, not a measurement: one manual lookup on the VIES website. */
 const MANUAL_SECONDS_PER_LOOKUP = 40;
 
 function duration(seconds: number): string {
@@ -65,7 +65,7 @@ export function PriceCalc() {
           <dl>
             <dt>Per number</dt>
             <dd>{formatMinor(q.effectiveUnitMinor)}</dd>
-            <dt>By hand on VIES</dt>
+            <dt>By hand, roughly</dt>
             <dd>~{duration(count * MANUAL_SECONDS_PER_LOOKUP)}</dd>
             <dt>Consultation numbers</dt>
             <dd>{count.toLocaleString("en-GB")}</dd>
@@ -80,7 +80,8 @@ export function PriceCalc() {
             {q.minimumApplied
               ? `Minimum order ${formatMinor(MINIMUM_ORDER_MINOR)} applies at this size. `
               : ""}
-            Manual time assumes about {MANUAL_SECONDS_PER_LOOKUP} seconds per lookup on the VIES website.
+            The manual time is an estimate, not a measurement: roughly {MANUAL_SECONDS_PER_LOOKUP} seconds per lookup
+            on the VIES website.
           </p>
         </div>
       </div>

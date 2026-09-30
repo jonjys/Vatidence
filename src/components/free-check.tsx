@@ -14,12 +14,18 @@ type CheckOk = {
 type CheckErr = { error: string; message?: string };
 
 /**
- * Public, registered numbers a stranger can try with one tap, so the first
- * thing the page does for them is answer something. One of them is German on
- * purpose: Germany discloses validity only, and seeing that before paying is
- * better than discovering it in the evidence pack.
+ * Registered numbers a stranger can try with one tap, so the first thing the
+ * page does for them is answer something. Each belongs to a company that
+ * publishes it itself - never a household brand, which would read as a
+ * customer, and never a sole trader: a Swedish sole trader's VAT number
+ * contains their personnummer. The German one is there on purpose: Germany
+ * discloses validity only, and seeing that before paying is better than
+ * discovering it in the evidence pack.
+ *
+ * SE: Mosslunda Snickeri AB · IE: Combilift (imprint page) ·
+ * DE: Schreiner Group GmbH & Co. KG (Impressum). All valid in VIES 2026-09-30.
  */
-const TRY_NUMBERS = ["SE556703748501", "IE6388047V", "DE811907980"] as const;
+const TRY_NUMBERS = ["SE556566943801", "IE8280018G", "DE130745279"] as const;
 
 export function FreeCheck({ onEscalate }: { onEscalate: (vatNumber: string) => void }) {
   const [value, setValue] = useState("");
@@ -138,7 +144,7 @@ export function FreeCheck({ onEscalate }: { onEscalate: (vatNumber: string) => v
             <div className="gap">
               <p className="gap-id">
                 <span>Consultation number</span>
-                <s>none issued</s>
+                <em>none issued</em>
               </p>
               <p>
                 <strong>This answer carries no consultation number.</strong> VIES issues one only when the requester
