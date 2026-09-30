@@ -211,7 +211,7 @@ export function OrderForm({ seed }: { seed?: OrderFormSeed | null } = {}) {
         <textarea
           id="list"
           spellCheck={false}
-          placeholder={"DE811907980\nFR40303265045\nIT00743110157\n…one per line, paste a CSV column, or drop a file here"}
+          placeholder={"DE811907980\nFR40303265045\nIT01583500986\n…one per line, paste a CSV column, or drop a file here"}
           value={list}
           data-drag={dragging ? "true" : undefined}
           onChange={(e) => {
