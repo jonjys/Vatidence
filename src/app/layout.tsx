@@ -1,6 +1,8 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import Link from "next/link";
-import { CONTACT } from "@/lib/contact";
+import { Logo } from "@/components/logo";
+import { SiteHeader } from "@/components/site-header";
+import { CONTACT, OPERATOR_TAX_STATUS } from "@/lib/contact";
 import { siteUrl } from "@/lib/site";
 import "./globals.css";
 
@@ -35,6 +37,13 @@ export const metadata: Metadata = {
   twitter: { card: "summary_large_image", title: TITLE, description: DESCRIPTION },
 };
 
+export const viewport: Viewport = {
+  themeColor: "#f6f0e6",
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+};
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
@@ -47,33 +56,38 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
       <body>
-        <main>
-          <header className="masthead">
-            <Link href="/" className="wordmark" style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <span className="mark" aria-hidden="true">
-                <span />
-              </span>
-              Vat<span>idence</span>
-            </Link>
-            <span className="kicker">EU VAT verification</span>
-          </header>
-          {children}
-          <footer>
-            <div className="footlinks">
+        <a href="#main" className="skip">
+          Skip to content
+        </a>
+        <SiteHeader />
+        <main id="main">{children}</main>
+        <footer className="site-footer">
+          <div className="wrap footer-grid">
+            <div>
+              <Logo />
+              <p className="footer-tag">Bulk EU VAT checks, with the consultation number.</p>
+              <p className="byline">
+                A product by{" "}
+                <a href={CONTACT.operatorUrl} rel="noopener">
+                  {CONTACT.operator}
+                </a>
+                , {CONTACT.country}. {OPERATOR_TAX_STATUS} Payments by Stripe. VAT numbers are checked against the
+                European Commission&apos;s VIES service.
+              </p>
+            </div>
+            <nav className="footlinks" aria-label="Site">
               <Link href="/">Home</Link>
+              <Link href="/#pricing">Pricing</Link>
               <Link href="/contact">Contact</Link>
               <Link href="/terms">Terms</Link>
               <Link href="/refunds">Refunds</Link>
               <Link href="/privacy">Privacy</Link>
-            </div>
-            <p className="byline">
-              A product by{" "}
               <a href={CONTACT.operatorUrl} rel="noopener">
-                {CONTACT.operator}
+                nyttolabs.com
               </a>
-            </p>
-          </footer>
-        </main>
+            </nav>
+          </div>
+        </footer>
       </body>
     </html>
   );

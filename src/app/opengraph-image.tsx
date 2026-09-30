@@ -10,10 +10,11 @@ import { ImageResponse } from "next/og";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
-const ACCENT = "#17e39a";
-const INK = "#f4f7fb";
-const MUTED = "#9aa4b6";
-const BG = "#03030c";
+const ACCENT = "#ff5b2e";
+const INK = "#16130f";
+const SOFT = "#3b352e";
+const PAPER = "#f6f0e6";
+const CREAM = "#fffaf2";
 
 export default function OpengraphImage() {
   return new ImageResponse(
@@ -25,32 +26,70 @@ export default function OpengraphImage() {
           display: "flex",
           flexDirection: "column",
           justifyContent: "center",
-          padding: "80px 96px",
-          background: BG,
+          padding: "72px 96px",
+          background: PAPER,
           fontFamily: "Helvetica, Arial, sans-serif",
+          position: "relative",
         }}
       >
-        <div style={{ display: "flex", alignItems: "baseline", marginBottom: 40 }}>
-          <span style={{ fontSize: 40, fontWeight: 700, color: INK }}>Vat</span>
-          <span style={{ fontSize: 40, fontWeight: 700, color: ACCENT }}>idence</span>
+        <div
+          style={{
+            position: "absolute",
+            right: -120,
+            top: -120,
+            width: 420,
+            height: 420,
+            borderRadius: 999,
+            background: ACCENT,
+            display: "flex",
+          }}
+        />
+        <div style={{ display: "flex", alignItems: "center", marginBottom: 44 }}>
+          <div
+            style={{
+              display: "flex",
+              width: 56,
+              height: 56,
+              borderRadius: 16,
+              background: INK,
+              alignItems: "center",
+              justifyContent: "center",
+              marginRight: 18,
+            }}
+          >
+            <div style={{ display: "flex", width: 22, height: 22, borderRadius: 999, background: ACCENT }} />
+          </div>
+          <span style={{ fontSize: 40, fontWeight: 800, color: INK, letterSpacing: -1 }}>Vatidence</span>
         </div>
-        <div style={{ display: "flex", fontSize: 56, fontWeight: 700, color: INK, lineHeight: 1.15, maxWidth: 920 }}>
+        <div
+          style={{
+            display: "flex",
+            fontSize: 68,
+            fontWeight: 800,
+            color: INK,
+            lineHeight: 1.02,
+            letterSpacing: -3,
+            maxWidth: 960,
+          }}
+        >
           Bulk EU VAT checks, with the VIES consultation number.
         </div>
-        <div style={{ display: "flex", fontSize: 28, color: MUTED, marginTop: 32, maxWidth: 880 }}>
+        <div style={{ display: "flex", fontSize: 28, color: SOFT, marginTop: 30, maxWidth: 880 }}>
           Free single check. Paid batches deliver a sealed PDF and CSV.
         </div>
-        <div style={{ display: "flex", gap: 16, marginTop: 48 }}>
-          {["27 member states", "Consultation number", "PDF + CSV", "No account"].map((label) => (
+        <div style={{ display: "flex", gap: 14, marginTop: 44 }}>
+          {["27 member states", "Consultation number", "PDF + CSV", "No account"].map((label, i) => (
             <div
               key={label}
               style={{
                 display: "flex",
-                padding: "10px 20px",
+                padding: "12px 22px",
                 borderRadius: 999,
-                border: `1px solid ${ACCENT}33`,
-                color: ACCENT,
+                background: i === 0 ? INK : CREAM,
+                border: `2px solid ${INK}`,
+                color: i === 0 ? CREAM : INK,
                 fontSize: 22,
+                fontWeight: 700,
               }}
             >
               {label}

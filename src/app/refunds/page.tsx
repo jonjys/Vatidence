@@ -4,7 +4,8 @@ export const dynamic = "force-dynamic";
 
 export default function RefundsPage() {
   return (
-    <>
+    <div className="page">
+      <p className="kicker">Legal · money back</p>
       <h1>Refund policy</h1>
       <p className="lede">You are billed per answered VAT number. No answer, no charge — enforced by the software, not by asking.</p>
 
@@ -34,6 +35,6 @@ export default function RefundsPage() {
         refunded. For anything about the payment itself — an invoice, a receipt, a charge you do not recognise —{" "}
         <a href={`mailto:${CONTACT.email.billing}`}>{CONTACT.email.billing}</a> is the faster route.
       </p>
-    </>
+    </div>
   );
 }

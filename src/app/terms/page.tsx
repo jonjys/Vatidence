@@ -7,7 +7,8 @@ export const dynamic = "force-dynamic";
 export default function TermsPage() {
   const config = env();
   return (
-    <>
+    <div className="page">
+      <p className="kicker">Legal</p>
       <h1>Terms of service</h1>
       <p className="lede">Short, because the service is short.</p>
 
@@ -77,6 +78,6 @@ export default function TermsPage() {
           Data protection — <a href={`mailto:${CONTACT.email.privacy}`}>{CONTACT.email.privacy}</a>
         </li>
       </ul>
-    </>
+    </div>
   );
 }

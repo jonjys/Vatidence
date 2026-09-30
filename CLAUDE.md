@@ -164,6 +164,17 @@ It is capped hard (6/minute, 40/hour per address hash) for two reasons: the
 capacity being spent is the European Commission's, and bulk checking is the
 thing being sold.
 
+## The look
+
+The site follows the Nytto Checkout (Curl-to-Buy) design system: warm paper,
+black ink, one orange accent, Instrument Sans + IBM Plex Mono. It is plain CSS
+tokens in `src/app/globals.css`, not Tailwind, so the build is unchanged. The
+free check sits in the hero and the order form further down; they share the
+hand-off through the `CheckFlow` context in `home-interactive.tsx`, which keeps
+`page.tsx` a static server component. Illustrations (hero scene, PDF preview,
+VIES demo) are HTML/CSS mirroring the real product - keep them in step with
+`src/lib/evidence.ts` and what VIES actually returns.
+
 ## Invariants worth protecting
 
 - Fulfillment never runs against an unpaid order; the state machine throws on

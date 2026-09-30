@@ -14,7 +14,7 @@ import { siteUrl } from "@/lib/site";
  * change, and leave it alone for a deploy that does not touch them.
  */
 const LEGAL_LAST_MODIFIED = "2026-09-12";
-const HOME_LAST_MODIFIED = "2026-09-12";
+const HOME_LAST_MODIFIED = "2026-09-30";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   return [

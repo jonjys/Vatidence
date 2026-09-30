@@ -2,7 +2,8 @@
 
 export default function ErrorBoundary({ reset }: { error: Error & { digest?: string }; reset: () => void }) {
   return (
-    <>
+    <div className="page">
+      <p className="kicker">Something went wrong</p>
       <h1>Temporarily unavailable</h1>
       <p className="lede">
         Something on our side is not responding right now. Nothing is lost: paid orders keep running in the background
@@ -14,6 +15,6 @@ export default function ErrorBoundary({ reset }: { error: Error & { digest?: str
           Try again
         </button>
       </div>
-    </>
+    </div>
   );
 }
