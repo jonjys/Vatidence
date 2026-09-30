@@ -31,14 +31,15 @@ export default async function ResultPage({
   } catch (e) {
     log.error("result_page.unavailable", { error: errorMessage(e) });
     return (
-      <>
+      <div className="page">
+        <p className="kicker">Your order</p>
         <h1>Order {token.slice(0, 10)}</h1>
         <p className="error">
           We cannot reach our database at this moment. Your order is unaffected: verification continues in the
           background and any payment is safe. Reload this page shortly.
         </p>
-        <p className="hint mono">Permanent link to this order: /r/{token}</p>
-      </>
+        <p className="permalink">Permanent link to this order: /r/{token}</p>
+      </div>
     );
   }
   if (!order) notFound();
@@ -72,7 +73,8 @@ export default async function ResultPage({
   const canceled = search.canceled === "1";
 
   return (
-    <>
+    <div className="page">
+      <p className="kicker">Your order · keep this link</p>
       <h1>Order {token.slice(0, 10)}</h1>
       <p className="lede">
         {order.itemCount} VAT number{order.itemCount === 1 ? "" : "s"} · requester {order.requesterCountry}
@@ -80,7 +82,10 @@ export default async function ResultPage({
       </p>
 
       {canceled && order.status === "awaiting_payment" ? (
-        <p className="notice">Checkout was cancelled, so nothing was charged and nothing was verified.</p>
+        <p className="notice">
+          Checkout was cancelled, so nothing was charged and nothing was verified. Your list is kept:{" "}
+          <a href={`/?relist=${encodeURIComponent(token)}#order`}>open it again and pay</a> whenever you are ready.
+        </p>
       ) : null}
 
       {order.purgedAt ? (
@@ -92,7 +97,7 @@ export default async function ResultPage({
         <ResultLive token={token} initial={initial} />
       )}
 
-      <p className="hint mono">Permanent link to this order: /r/{token}</p>
-    </>
+      <p className="permalink">Permanent link to this order: /r/{token}</p>
+    </div>
   );
 }

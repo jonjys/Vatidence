@@ -51,29 +51,32 @@ export function ResultLive({ token, initial }: { token: string; initial: StatusP
   return (
     <>
       <div className="panel">
-        <div className="row">
+        <div className="status-row">
           <div>
-            <strong>{LABELS[state.status] ?? state.status}</strong>
+            <span className={state.done ? "status-pill done" : "status-pill"}>
+              <i aria-hidden="true" />
+              {LABELS[state.status] ?? state.status}
+            </span>
             <div className="hint">
               {state.counts.total - state.counts.pending} of {state.counts.total} numbers resolved
             </div>
           </div>
           <div className="price">{state.progress}%</div>
         </div>
-        <div className="bar">
+        <div className={state.done ? "bar" : "bar running"}>
           <i style={{ width: `${state.progress}%` }} />
         </div>
 
         <div className="summary">
-          <div className="stat">
+          <div className="stat ok-tile">
             <div className="n ok">{state.counts.valid}</div>
             <div className="k">valid</div>
           </div>
-          <div className="stat">
+          <div className="stat bad-tile">
             <div className="n bad">{state.counts.invalid}</div>
             <div className="k">not valid</div>
           </div>
-          <div className="stat">
+          <div className="stat warn-tile">
             <div className="n warn">{state.counts.unverifiable}</div>
             <div className="k">unverifiable</div>
           </div>
@@ -90,7 +93,7 @@ export function ResultLive({ token, initial }: { token: string; initial: StatusP
         </div>
 
         {!state.done ? (
-          <p className="hint">
+          <p className="hint" style={{ marginTop: "1rem" }}>
             This page updates itself. Member states occasionally go offline; those rows are retried automatically and
             refunded if they stay unavailable. You can close this tab and come back to this URL.
           </p>
@@ -98,22 +101,24 @@ export function ResultLive({ token, initial }: { token: string; initial: StatusP
       </div>
 
       {state.downloadsReady ? (
-        <div className="panel">
-          <h2 style={{ marginTop: 0 }}>Your evidence pack</h2>
-          <a className="dl" href={`/api/orders/${token}/evidence.pdf`}>
-            Download PDF evidence pack
-          </a>
-          <a className="dl" href={`/api/orders/${token}/results.csv`}>
-            Download CSV
-          </a>
+        <div className="panel pack">
+          <h2 className="card-title">Your evidence pack</h2>
+          <div className="dl-row">
+            <a className="dl btn btn-accent" href={`/api/orders/${token}/evidence.pdf`}>
+              Download PDF evidence pack
+            </a>
+            <a className="dl btn btn-cream" href={`/api/orders/${token}/results.csv`}>
+              Download CSV
+            </a>
+          </div>
           <p className="hint">
             Retrievable from this URL until {new Date(state.retrievableUntil).toISOString().slice(0, 10)}, after which
             the underlying records are erased.
           </p>
           <p className="hint">
             A consultation number evidences the day it was issued, and registrations are withdrawn between periods.{" "}
-            <a href={`/?relist=${encodeURIComponent(token)}`}>Run this same list again</a> — it comes back pre-filled,
-            so re-checking costs a click rather than a rebuild.
+            <a href={`/?relist=${encodeURIComponent(token)}#order`}>Run this same list again</a> — it comes back
+            pre-filled, so re-checking costs a click rather than a rebuild.
           </p>
         </div>
       ) : null}

@@ -34,21 +34,24 @@ const ROUTES = [
 
 export default function ContactPage() {
   return (
-    <>
+    <div className="page">
+      <p className="kicker">Contact</p>
       <h1>Contact</h1>
       <p className="lede">
         {CONTACT.product} is operated by {OPERATOR_LINE}. There is no support queue and no ticket form.
       </p>
 
-      {ROUTES.map((route) => (
-        <div className="panel" key={route.email}>
-          <p className="card-title">{route.what}</p>
-          <p className="card-sub">{route.detail}</p>
-          <a className="dl" href={`mailto:${route.email}`}>
-            {route.email}
-          </a>
-        </div>
-      ))}
+      <div className="routes">
+        {ROUTES.map((route) => (
+          <div className="panel" key={route.email}>
+            <p className="card-title">{route.what}</p>
+            <p className="card-sub">{route.detail}</p>
+            <a className="dl btn btn-sm" href={`mailto:${route.email}`}>
+              {route.email}
+            </a>
+          </div>
+        ))}
+      </div>
 
       <h2>Operator</h2>
       <p>
@@ -62,6 +65,6 @@ export default function ContactPage() {
         Include the order URL whenever you have one. It is the only thing that identifies an order, and it lets a
         question be answered without any further back and forth.
       </p>
-    </>
+    </div>
   );
 }

@@ -29,6 +29,7 @@ export function OrderForm({ seed }: { seed?: OrderFormSeed | null } = {}) {
   const [relist, setRelist] = useState<Relist | null>(null);
   const [seedNotice, setSeedNotice] = useState<string | null>(null);
   const [exampleLoaded, setExampleLoaded] = useState(false);
+  const [dragging, setDragging] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
   const relistDone = useRef(false);
 
@@ -105,6 +106,16 @@ export function OrderForm({ seed }: { seed?: OrderFormSeed | null } = {}) {
     if (fileRef.current) fileRef.current.value = "";
   }
 
+  // A CSV dropped on the list box is read exactly like one picked with the
+  // file button.
+  function onDrop(e: React.DragEvent<HTMLTextAreaElement>) {
+    const file = e.dataTransfer.files?.[0];
+    setDragging(false);
+    if (!file) return;
+    e.preventDefault();
+    void onFile(file);
+  }
+
   function loadExample() {
     setList(EXAMPLE_TEXT);
     setExampleLoaded(true);
@@ -159,7 +170,7 @@ export function OrderForm({ seed }: { seed?: OrderFormSeed | null } = {}) {
   }
 
   return (
-    <div className="panel" id="order">
+    <div className="panel order-card" id="order">
       <p className="card-title">Start a verification</p>
       <p className="card-sub">Paste your list, see the price, pay once. Nothing is charged until you confirm.</p>
 
@@ -191,9 +202,7 @@ export function OrderForm({ seed }: { seed?: OrderFormSeed | null } = {}) {
           lookup into evidence.
         </p>
         {requesterVat.trim() && requester && !requester.ok ? (
-          <p className="error" style={{ marginTop: 8 }}>
-            {requester.reason}
-          </p>
+          <p className="error">{requester.reason}</p>
         ) : null}
       </div>
 
@@ -202,28 +211,40 @@ export function OrderForm({ seed }: { seed?: OrderFormSeed | null } = {}) {
         <textarea
           id="list"
           spellCheck={false}
-          placeholder={"DE811907980\nFR40303265045\nIT00743110157\n…one per line, or paste a CSV column"}
+          placeholder={"DE811907980\nFR40303265045\nIT01583500986\n…one per line, paste a CSV column, or drop a file here"}
           value={list}
+          data-drag={dragging ? "true" : undefined}
           onChange={(e) => {
             setList(e.target.value);
             setExampleLoaded(false);
           }}
+          onDragOver={(e) => {
+            if (e.dataTransfer.types.includes("Files")) {
+              e.preventDefault();
+              setDragging(true);
+            }
+          }}
+          onDragLeave={() => setDragging(false)}
+          onDrop={onDrop}
         />
         <p className="hint">
           One per line, or comma/semicolon/tab separated. Duplicates are removed and never charged twice. Minimum order{" "}
           {formatMinor(MINIMUM_ORDER_MINOR)}
-          {parsed.items.length === 0 ? " — even for a single number." : "."}{" "}
-          <input
-            ref={fileRef}
-            type="file"
-            accept=".csv,.txt,text/csv,text/plain"
-            onChange={(e) => {
-              const file = e.target.files?.[0];
-              if (file) void onFile(file);
-            }}
-          />
+          {parsed.items.length === 0 ? " — even for a single number." : "."}
         </p>
         <div className="list-actions">
+          <label className="upload">
+            <span aria-hidden="true">↑</span> Upload CSV or TXT
+            <input
+              ref={fileRef}
+              type="file"
+              accept=".csv,.txt,text/csv,text/plain"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) void onFile(file);
+              }}
+            />
+          </label>
           <button type="button" className="ghost" onClick={loadExample}>
             Load example list
           </button>
@@ -234,7 +255,7 @@ export function OrderForm({ seed }: { seed?: OrderFormSeed | null } = {}) {
           ) : null}
         </div>
         {showingExample ? (
-          <p className="notice" style={{ marginTop: 10 }}>
+          <p className="notice">
             Example data — format-valid public samples, not your customers. Clear the list before you pay unless you
             want these checked.
           </p>
@@ -242,7 +263,7 @@ export function OrderForm({ seed }: { seed?: OrderFormSeed | null } = {}) {
       </div>
 
       <div className="summary">
-        <div className="stat">
+        <div className={parsed.items.length > 0 ? "stat ok-tile" : "stat"}>
           <div className="n">{parsed.items.length}</div>
           <div className="k">billable</div>
         </div>
@@ -250,7 +271,7 @@ export function OrderForm({ seed }: { seed?: OrderFormSeed | null } = {}) {
           <div className="n">{parsed.duplicates.length}</div>
           <div className="k">duplicates removed</div>
         </div>
-        <div className="stat">
+        <div className={parsed.rejected.length > 0 ? "stat warn-tile" : "stat"}>
           <div className="n">{parsed.rejected.length}</div>
           <div className="k">unusable</div>
         </div>
@@ -283,7 +304,7 @@ export function OrderForm({ seed }: { seed?: OrderFormSeed | null } = {}) {
       ) : null}
 
       {error ? (
-        <p className="error" style={{ marginTop: 12 }}>
+        <p className="error" role="alert">
           {error}
         </p>
       ) : null}
@@ -297,6 +318,11 @@ export function OrderForm({ seed }: { seed?: OrderFormSeed | null } = {}) {
         </div>
         <button type="button" className="pay-cta" onClick={() => void submit()} disabled={!ready}>
           {busy ? "Opening checkout…" : "Pay and verify"}
+          {busy ? null : (
+            <span className="arrow" aria-hidden="true">
+              →
+            </span>
+          )}
         </button>
       </div>
       <p className="trust">

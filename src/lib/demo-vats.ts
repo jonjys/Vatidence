@@ -12,7 +12,7 @@ import { parseVat } from "@/lib/vat";
 export const EXAMPLE_VAT_NUMBERS = [
   "DE811907980",
   "FR40303265045",
-  "IT00743110157",
+  "IT01583500986",
   "NL123456789B01",
   "BE0123456789",
   "ATU12345678",

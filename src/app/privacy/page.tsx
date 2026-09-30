@@ -6,7 +6,8 @@ export const dynamic = "force-dynamic";
 export default function PrivacyPage() {
   const config = env();
   return (
-    <>
+    <div className="page">
+      <p className="kicker">Legal</p>
       <h1>Privacy</h1>
       <p className="lede">
         The service is built so there is very little to protect: there are no accounts, no profiles and no marketing.
@@ -52,6 +53,6 @@ export default function PrivacyPage() {
         <a href={CONTACT.productUrl}>vatidence.nyttolabs.com</a>. Data-protection requests reach a person fastest at the address
         above; anything else can go to <a href={`mailto:${CONTACT.email.general}`}>{CONTACT.email.general}</a>.
       </p>
-    </>
+    </div>
   );
 }
