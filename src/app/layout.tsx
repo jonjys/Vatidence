@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import Link from "next/link";
 import { Logo } from "@/components/logo";
+import { SiteAnalytics } from "@/components/site-analytics";
 import { SiteHeader } from "@/components/site-header";
 import { CONTACT, OPERATOR_TAX_STATUS } from "@/lib/contact";
 import { siteUrl } from "@/lib/site";
@@ -88,6 +89,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             </nav>
           </div>
         </footer>
+        <SiteAnalytics />
       </body>
     </html>
   );
