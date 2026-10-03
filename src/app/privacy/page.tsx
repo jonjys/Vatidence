@@ -23,9 +23,16 @@ export default function PrivacyPage() {
 
       <h2>What is not stored</h2>
       <p>
-        No card details (Stripe holds those), no email address in this service&apos;s own database, no cookies for
-        tracking, no analytics and no third-party scripts. The order URL is the only credential; anyone holding it can
+        No card details (Stripe holds those), no email address in this service&apos;s own database, no cookies, no
+        cross-site tracking and no third-party scripts. The order URL is the only credential; anyone holding it can
         read that order, so treat it as confidential.
+      </p>
+
+      <h2>Page-view statistics</h2>
+      <p>
+        Page views are counted with Vercel Web Analytics, served from this domain. It sets no cookies and stores no
+        personal data, only the page, referrer, country and device type. Order links are reported as /r/[token] and
+        query strings are dropped, so an order URL or payment reference is never recorded.
       </p>
 
       <h2>Retention</h2>
@@ -38,7 +45,7 @@ export default function PrivacyPage() {
       <h2>Processors</h2>
       <ul>
         <li>Stripe — payment processing.</li>
-        <li>Vercel — hosting.</li>
+        <li>Vercel — hosting and cookieless page-view statistics.</li>
         <li>Neon — database hosting.</li>
         <li>The European Commission (VIES) — the VAT numbers submitted are sent there to be checked. That is the service.</li>
       </ul>
