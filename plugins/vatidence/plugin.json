@@ -1,0 +1,6 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "vatidence",
+  "version": "1.0.0",
+  "description": "Free EU VAT checks against VIES and human-approved paid batch PDF/CSV evidence from EUR 4.90. No subscription."
+}
