@@ -1,5 +1,13 @@
 # Vatidence
 
+## AI plugin / MCP
+
+Remote Streamable HTTP: `https://vatidence.nyttolabs.com/api/mcp`.
+Free single VIES checks; paid batch PDF/CSV evidence from EUR 4.90 per order.
+Quote first, obtain explicit approval, then create a human-payable Stripe link.
+No agent-triggered charge or subscription. See [plugin installation and tool
+reference](plugins/vatidence/README.md) and the public `/ai-plugin` page.
+
 **Live:** [vatidence.nyttolabs.com](https://vatidence.nyttolabs.com) · **Repo:** [jonjys/viesproof](https://github.com/jonjys/viesproof)
 
 A machine that sits between EU businesses and the European Commission's VIES

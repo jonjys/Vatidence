@@ -79,6 +79,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <nav className="footlinks" aria-label="Site">
               <Link href="/">Home</Link>
               <Link href="/#pricing">Pricing</Link>
+              <Link href="/ai-plugin">AI plugin</Link>
               <Link href="/contact">Contact</Link>
               <Link href="/terms">Terms</Link>
               <Link href="/refunds">Refunds</Link>

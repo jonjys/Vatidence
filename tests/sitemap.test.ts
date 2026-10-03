@@ -24,6 +24,7 @@ describe("sitemap", () => {
   it("lists exactly the public pages, absolute and without a double slash", () => {
     expect(sitemap().map((e) => e.url)).toEqual([
       "https://vatidence.nyttolabs.com/",
+      "https://vatidence.nyttolabs.com/ai-plugin",
       "https://vatidence.nyttolabs.com/contact",
       "https://vatidence.nyttolabs.com/terms",
       "https://vatidence.nyttolabs.com/refunds",
