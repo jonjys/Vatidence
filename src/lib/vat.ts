@@ -67,6 +67,9 @@ function scrub(raw: string): string {
 export function parseVat(raw: string): { ok: true; value: ParsedVat } | { ok: false; reason: string } {
   const cleaned = scrub(raw);
   if (cleaned.length === 0) return { ok: false, reason: "empty value" };
+  // A word or a name pasted into the list: say so, rather than reading its
+  // first two letters as a country ("nonsense" is not a Norwegian number).
+  if (!/\d/.test(cleaned)) return { ok: false, reason: "not a VAT number (no digits)" };
   if (cleaned.length > 20) return { ok: false, reason: "too long to be a VAT number" };
 
   const prefix = cleaned.slice(0, 2);

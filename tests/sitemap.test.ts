@@ -24,6 +24,8 @@ describe("sitemap", () => {
   it("lists exactly the public pages, absolute and without a double slash", () => {
     expect(sitemap().map((e) => e.url)).toEqual([
       "https://vatidence.nyttolabs.com/",
+      "https://vatidence.nyttolabs.com/vies-status",
+      "https://vatidence.nyttolabs.com/vat-number-formats",
       "https://vatidence.nyttolabs.com/ai-plugin",
       "https://vatidence.nyttolabs.com/contact",
       "https://vatidence.nyttolabs.com/terms",
@@ -46,6 +48,8 @@ describe("robots", () => {
     );
     expect(disallow).toContain("/r/");
     expect(disallow).toContain("/api/");
+    // Shared check links run a live VIES lookup on every open.
+    expect(disallow).toContain("/check/");
     expect(r.sitemap).toBe("https://vatidence.nyttolabs.com/sitemap.xml");
   });
 });

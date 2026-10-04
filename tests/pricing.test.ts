@@ -90,8 +90,8 @@ describe("minimum floor copy", () => {
     expect(copy).toMatch(/Minimum order/);
     expect(copy).toMatch(/4\.90/);
     expect(copy).toMatch(/0\.39/);
-    expect(copy).toMatch(/13 numbers/);
-    expect(copy).toMatch(/effective rate is higher/);
+    expect(copy).toMatch(/covers up to 12 numbers/);
+    expect(copy).toMatch(/From 13 numbers/);
   });
 });
 

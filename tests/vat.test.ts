@@ -36,6 +36,15 @@ describe("parseVat", () => {
     }
   });
 
+  it("calls a pasted word a word, not an uncovered country", () => {
+    // "nonsense" used to be reported as `country "NO" is not covered by VIES`.
+    for (const input of ["nonsense", "Acme AB", "VAT number"]) {
+      const r = parseVat(input);
+      expect(r.ok, input).toBe(false);
+      if (!r.ok) expect(r.reason, input).toMatch(/no digits/);
+    }
+  });
+
   it("rejects absurdly long input before it reaches the database", () => {
     expect(parseVat("SE" + "1".repeat(500)).ok).toBe(false);
   });

@@ -8,7 +8,9 @@ export default function robots(): MetadataRoute.Robots {
       allow: "/",
       // Order pages and downloads are capability URLs: whoever holds the token
       // can read that order. They must never be crawled or indexed.
-      disallow: ["/r/", "/api/"],
+      // Shared /check/<number> links run a live VIES lookup on every open; a
+      // crawler following them would spend the Commission's capacity on nobody.
+      disallow: ["/r/", "/api/", "/check/"],
     },
     sitemap: `${siteUrl}/sitemap.xml`,
   };
