@@ -7,40 +7,84 @@ import { ViesDemo } from "@/components/vies-demo";
 import { WelcomeBack } from "@/components/welcome-back";
 import { CONTACT, OPERATOR_TAX_STATUS } from "@/lib/contact";
 import { MINIMUM_ORDER_MINOR, TIERS, formatMinor, minimumFloorExplanation } from "@/lib/pricing";
-import { SUPPORTED_COUNTRIES, type CountryCode } from "@/lib/vat";
+import { siteUrl } from "@/lib/site";
+import { COUNTRIES } from "@/lib/countries";
+import { SUPPORTED_COUNTRIES } from "@/lib/vat";
 
 export const dynamic = "force-static";
 
-const COUNTRY_NAMES: Record<CountryCode, string> = {
-  AT: "Austria",
-  BE: "Belgium",
-  BG: "Bulgaria",
-  CY: "Cyprus",
-  CZ: "Czechia",
-  DE: "Germany",
-  DK: "Denmark",
-  EE: "Estonia",
-  EL: "Greece",
-  ES: "Spain",
-  FI: "Finland",
-  FR: "France",
-  HR: "Croatia",
-  HU: "Hungary",
-  IE: "Ireland",
-  IT: "Italy",
-  LT: "Lithuania",
-  LU: "Luxembourg",
-  LV: "Latvia",
-  MT: "Malta",
-  NL: "Netherlands",
-  PL: "Poland",
-  PT: "Portugal",
-  RO: "Romania",
-  SE: "Sweden",
-  SI: "Slovenia",
-  SK: "Slovakia",
-  XI: "Northern Ireland",
-};
+
+/**
+ * The FAQ as data, so the same words render on the page and go to search
+ * engines as FAQPage structured data. A trailing link is rendered after the
+ * answer on the page and left out of the structured text.
+ */
+const FAQ: ReadonlyArray<{ q: string; a: string; link?: { href: string; label: string } }> = [
+  {
+    q: "Why do I need to enter my own VAT number?",
+    a: "Because that is what makes VIES issue a consultation number. Without a requester, VIES answers yes or no and records nothing. With one, it returns a unique identifier recording who checked, which number, and when. You can do the same on the VIES website one number at a time; Vatidence does it for the whole list and hands you the result as a file.",
+  },
+  {
+    q: "What if a member state’s system is offline?",
+    a: "Those rows are retried automatically on an escalating schedule. If a row still cannot be answered, it is marked unverifiable and what you paid for it is refunded to your card, with no request needed. If no row in an order can be answered, the whole order is refunded.",
+    link: { href: "/vies-status", label: "See which member states are answering right now" },
+  },
+  {
+    q: "Is a “not valid” result refunded?",
+    a: "No. “Not valid” is an answer, and often the most useful one in the batch. Lines that are not EU VAT numbers at all are rejected before payment and never charged.",
+  },
+  {
+    q: "What does a valid EU VAT number look like?",
+    a: "A two-letter country prefix and a national number whose length and shape differ by member state: DE and 9 digits, NL with a B and two digits at the end, EL rather than GR for Greece. Lines that do not fit their country’s format are flagged before you pay.",
+    link: { href: "/vat-number-formats", label: "All 28 formats, with examples" },
+  },
+  {
+    q: "Why are the name and address sometimes empty?",
+    a: "Several member states, Germany among them, disclose nothing beyond validity. The pack shows exactly what VIES returned rather than filling the gap.",
+  },
+  {
+    q: "Do I need an account?",
+    a: "No account, no login, no subscription. After checkout you land on a private order page; its link is the only key to your results, so keep it. This browser also remembers your most recent order.",
+  },
+  {
+    q: "Can I re-check the same list next quarter?",
+    a: "Yes. A consultation number evidences the day it was issued, and registrations are withdrawn between periods. Your order page has a “Run this same list again” link that brings the whole list back pre-filled.",
+  },
+];
+
+/** FAQPage and the offer, for search engines. Built from the same constants the page renders. */
+function jsonLd(): string {
+  const data = [
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      mainEntity: FAQ.map((item) => ({
+        "@type": "Question",
+        name: item.q,
+        acceptedAnswer: { "@type": "Answer", text: item.a },
+      })),
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      name: "Vatidence",
+      url: siteUrl,
+      applicationCategory: "BusinessApplication",
+      operatingSystem: "Any",
+      description:
+        "Free single EU VAT number checks against VIES, and bulk verification that returns every VIES consultation number in a sealed PDF and CSV.",
+      offers: {
+        "@type": "Offer",
+        price: (MINIMUM_ORDER_MINOR / 100).toFixed(2),
+        priceCurrency: "EUR",
+        description: `One-off payment per list, from ${formatMinor(MINIMUM_ORDER_MINOR)}. No subscription.`,
+      },
+      provider: { "@type": "Organization", name: CONTACT.operator, url: CONTACT.operatorUrl },
+    },
+  ];
+  // "<" escaped so no string in the data can ever close the script element.
+  return JSON.stringify(data).replace(/</g, "\\u003c");
+}
 
 const arrow = (
   <span className="arrow" aria-hidden="true">
@@ -96,7 +140,7 @@ export default function HomePage() {
               {SUPPORTED_COUNTRIES.map((code) => (
                 <li key={code}>
                   <b>{code}</b>
-                  {COUNTRY_NAMES[code]}
+                  {COUNTRIES[code].name}
                 </li>
               ))}
             </ul>
@@ -173,12 +217,12 @@ export default function HomePage() {
               );
             })}
           </ul>
-          <p className="price-floor">{minimumFloorExplanation()}</p>
+          <p className="price-floor">
+            {minimumFloorExplanation()} Rows a member state cannot answer are{" "}
+            <Link href="/refunds">refunded automatically</Link>.
+          </p>
           <p className="fine-print">
-            One payment, no recurring charge. Small batches still pay {formatMinor(MINIMUM_ORDER_MINOR)}, so the
-            effective rate can be higher than the tier until that floor is covered. Rows a member state cannot answer
-            are <Link href="/refunds">refunded automatically</Link> — you are never billed for an answer you did not
-            get.
+            No monthly plan for a list you check four times a year: you pay when you verify, and nothing in between.
           </p>
         </div>
       </section>
@@ -263,64 +307,22 @@ export default function HomePage() {
             <h2 className="h2">Questions, answered.</h2>
           </div>
           <div className="faq" style={{ marginTop: 0 }}>
-            <details>
-              <summary>Why do I need to enter my own VAT number?</summary>
-              <div>
-                <p>
-                  Because that is what makes VIES issue a consultation number. Without a requester, VIES answers yes or
-                  no and records nothing. With one, it returns a unique identifier recording who checked, which number,
-                  and when. You can do the same on the VIES website one number at a time; Vatidence does it for the
-                  whole list and hands you the result as a file.
-                </p>
-              </div>
-            </details>
-            <details>
-              <summary>What if a member state&apos;s system is offline?</summary>
-              <div>
-                <p>
-                  Those rows are retried automatically on an escalating schedule. If a row still cannot be answered, it
-                  is marked unverifiable and what you paid for it is refunded to your card — no request needed. If no
-                  row in an order can be answered, the whole order is refunded.
-                </p>
-              </div>
-            </details>
-            <details>
-              <summary>Is a &ldquo;not valid&rdquo; result refunded?</summary>
-              <div>
-                <p>
-                  No. &ldquo;Not valid&rdquo; is an answer, and often the most useful one in the batch. Lines that are
-                  not EU VAT numbers at all are rejected before payment and never charged.
-                </p>
-              </div>
-            </details>
-            <details>
-              <summary>Why are the name and address sometimes empty?</summary>
-              <div>
-                <p>
-                  Several member states, Germany among them, disclose nothing beyond validity. The pack shows exactly
-                  what VIES returned rather than filling the gap.
-                </p>
-              </div>
-            </details>
-            <details>
-              <summary>Do I need an account?</summary>
-              <div>
-                <p>
-                  No account, no login, no subscription. After checkout you land on a private order page; its link is
-                  the only key to your results, so keep it. This browser also remembers your most recent order.
-                </p>
-              </div>
-            </details>
-            <details>
-              <summary>Can I re-check the same list next quarter?</summary>
-              <div>
-                <p>
-                  Yes. A consultation number evidences the day it was issued, and registrations are withdrawn between
-                  periods. Your order page has a &ldquo;Run this same list again&rdquo; link that brings the whole list
-                  back pre-filled.
-                </p>
-              </div>
-            </details>
+            {FAQ.map((item) => (
+              <details key={item.q}>
+                <summary>{item.q}</summary>
+                <div>
+                  <p>
+                    {item.a}
+                    {item.link ? (
+                      <>
+                        {" "}
+                        <Link href={item.link.href}>{item.link.label}</Link>.
+                      </>
+                    ) : null}
+                  </p>
+                </div>
+              </details>
+            ))}
             <details>
               <summary>Who runs this?</summary>
               <div>
@@ -334,6 +336,12 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+
+      <script
+        type="application/ld+json"
+        // Static, server-rendered and built only from constants on this page.
+        dangerouslySetInnerHTML={{ __html: jsonLd() }}
+      />
 
       <section className="wrap" style={{ paddingBottom: "3.5rem" }}>
         <div className="final">

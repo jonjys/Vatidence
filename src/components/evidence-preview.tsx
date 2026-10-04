@@ -67,6 +67,12 @@ export function EvidencePreview() {
       </div>
       <figcaption className="illustration">
         Page one of an evidence pack, drawn to scale. Consultation numbers and seal are illustrative.
+        <span className="sample-links">
+          See the real thing, generated from sample data: <a href="/sample-evidence.pdf">sample PDF</a> ·{" "}
+          <a href="/sample-evidence.csv" download>
+            sample CSV
+          </a>
+        </span>
       </figcaption>
     </figure>
   );

@@ -2,8 +2,10 @@
 
 import Link from "next/link";
 import { useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
+import { useViesStatus } from "@/components/use-vies-status";
 import { CHECKOUT_NETWORK, CHECKOUT_NOT_STARTED, checkoutErrorMessage, readJsonBody } from "@/lib/checkout-error";
 import { CONTACT, OPERATOR_TAX_STATUS } from "@/lib/contact";
+import { COUNTRIES } from "@/lib/countries";
 import { exampleVatListText } from "@/lib/demo-vats";
 import { MAX_ROWS, MAX_UPLOAD_BYTES } from "@/lib/limits";
 import { MINIMUM_ORDER_MINOR, formatLiveQuoteHint, formatMinor, minimumFloorExplanation, quote } from "@/lib/pricing";
@@ -19,6 +21,8 @@ type Relist = { state: "loading" } | { state: "ready"; count: number } | { state
 export type OrderFormSeed = { vatNumber: string; at: number };
 
 const EXAMPLE_TEXT = exampleVatListText();
+/** The customer's own number, kept so a cancelled Stripe checkout is not a re-type. */
+const REQUESTER_KEY = "vatidence:requester-vat";
 const TAX_STATUS_LINE = OPERATOR_TAX_STATUS.replace(/\.$/, "").split(". ").join(" · ");
 
 export function OrderForm({ seed }: { seed?: OrderFormSeed | null } = {}) {
@@ -40,7 +44,24 @@ export function OrderForm({ seed }: { seed?: OrderFormSeed | null } = {}) {
     if (relistDone.current) return;
     relistDone.current = true;
 
-    const token = new URLSearchParams(window.location.search).get("relist");
+    const params = new URLSearchParams(window.location.search);
+
+    try {
+      const remembered = localStorage.getItem(REQUESTER_KEY);
+      if (remembered && parseVat(remembered).ok) setRequesterVat((prev) => prev || remembered);
+    } catch {
+      // storage blocked; the field simply starts empty
+    }
+
+    // A shared /check/<number> page hands its number over as ?add=<number>.
+    const added = params.get("add");
+    const addedParsed = added ? parseVat(added) : null;
+    if (addedParsed?.ok) {
+      setList(addedParsed.value.canonical);
+      setSeedNotice(`Added ${addedParsed.value.canonical}. Paste the rest of your list, then enter your own VAT number.`);
+    }
+
+    const token = params.get("relist");
     if (!token || !/^[A-Za-z0-9_-]{6,64}$/.test(token)) return;
 
     setRelist({ state: "loading" });
@@ -89,6 +110,19 @@ export function OrderForm({ seed }: { seed?: OrderFormSeed | null } = {}) {
   const deferredList = useDeferredValue(list);
   const parsed = useMemo(() => parseVatList(deferredList, MAX_ROWS), [deferredList]);
   const requester = useMemo(() => (requesterVat.trim() ? parseVat(requesterVat) : null), [requesterVat]);
+
+  const status = useViesStatus();
+  // A member state that is down right now is not a reason to wait, but it is
+  // a reason to say so before Pay, with what happens to those rows.
+  const downInList = useMemo(() => {
+    if (!status) return null;
+    const down = new Set(status.countries.filter((c) => c.availability === "unavailable").map((c) => c.countryCode));
+    const hit = parsed.items.filter((item) => down.has(item.countryCode));
+    if (hit.length === 0) return null;
+    const names = [...new Set(hit.map((item) => COUNTRIES[item.countryCode].name))];
+    const list = names.length === 1 ? names[0] : `${names.slice(0, -1).join(", ")} and ${names[names.length - 1]}`;
+    return { count: hit.length, list, plural: names.length > 1 };
+  }, [status, parsed.items]);
 
   const priced = parsed.items.length > 0 ? quote(parsed.items.length) : null;
   const ready = parsed.items.length > 0 && requester?.ok === true && !busy;
@@ -159,6 +193,7 @@ export function OrderForm({ seed }: { seed?: OrderFormSeed | null } = {}) {
       // Keep the result link locally so a closed tab is never a lost order.
       try {
         localStorage.setItem("vatidence:last-result", ok.resultUrl);
+        localStorage.setItem(REQUESTER_KEY, requester.value.canonical);
       } catch {
         // private browsing; the success redirect still carries the link
       }
@@ -193,7 +228,7 @@ export function OrderForm({ seed }: { seed?: OrderFormSeed | null } = {}) {
           type="text"
           autoComplete="off"
           spellCheck={false}
-          placeholder="SE556036079301"
+          placeholder="Yours, e.g. SE123456789001"
           value={requesterVat}
           onChange={(e) => setRequesterVat(e.target.value)}
         />
@@ -301,6 +336,15 @@ export function OrderForm({ seed }: { seed?: OrderFormSeed | null } = {}) {
             {parsed.rejected.length > 50 ? <div>…and {parsed.rejected.length - 50} more</div> : null}
           </div>
         </div>
+      ) : null}
+
+      {downInList ? (
+        <p className="notice">
+          {downInList.count === 1 ? "1 number in your list is" : `${downInList.count} numbers in your list are`} from{" "}
+          {downInList.list}, whose VIES service{downInList.plural ? "s are" : " is"} not answering right now (
+          <Link href="/vies-status">live status</Link>). You can still order: those rows are retried automatically and
+          refunded if they are never answered.
+        </p>
       ) : null}
 
       {error ? (

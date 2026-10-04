@@ -105,7 +105,7 @@ export function minimumFloorExplanation(): string {
   const min = formatMinor(MINIMUM_ORDER_MINOR);
   const tier = formatMinor(TIERS[0]!.unitMinor);
   const clearAt = firstCountWithoutMinimum();
-  return `Minimum order ${min}. The ${tier} figure is the first-tier rate; a batch smaller than ${clearAt} numbers still costs ${min}, so the effective rate is higher until that floor is covered.`;
+  return `Minimum order ${min}, which covers up to ${clearAt - 1} numbers. From ${clearAt} numbers you simply pay the tier rate, starting at ${tier}.`;
 }
 
 /** One line under the live total: billable count, floor, effective unit. */

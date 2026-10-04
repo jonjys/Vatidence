@@ -5,7 +5,7 @@ import { siteUrl } from "@/lib/site";
 
 export const dynamic = "force-static";
 export const metadata: Metadata = {
-  title: "EU VAT verification MCP plugin | Vatidence",
+  title: "EU VAT verification MCP plugin",
   description: "Free single VIES VAT checks in MCP-compatible AI assistants. One-off batch PDF/CSV evidence from €4.90. No subscription; human-approved Stripe checkout.",
   alternates: { canonical: "/ai-plugin" },
 };

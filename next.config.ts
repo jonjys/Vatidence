@@ -5,6 +5,10 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
   eslint: { ignoreDuringBuilds: false },
   typescript: { ignoreBuildErrors: false },
+  async redirects() {
+    // The short form people guess; the page itself lives at the descriptive URL.
+    return [{ source: "/status", destination: "/vies-status", permanent: true }];
+  },
   async headers() {
     return [
       {

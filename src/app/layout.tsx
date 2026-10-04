@@ -20,7 +20,9 @@ const DESCRIPTION =
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
-  title: TITLE,
+  // Inner pages name themselves ("Contact") and get the brand appended, so a
+  // search result for the status page reads "Is VIES down? … · Vatidence".
+  title: { default: TITLE, template: "%s · Vatidence" },
   description: DESCRIPTION,
   alternates: { canonical: "/" },
   robots: { index: true, follow: true },
@@ -79,6 +81,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <nav className="footlinks" aria-label="Site">
               <Link href="/">Home</Link>
               <Link href="/#pricing">Pricing</Link>
+              <Link href="/vies-status">VIES status</Link>
+              <Link href="/vat-number-formats">VAT number formats</Link>
               <Link href="/ai-plugin">AI plugin</Link>
               <Link href="/contact">Contact</Link>
               <Link href="/terms">Terms</Link>

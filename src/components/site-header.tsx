@@ -27,6 +27,7 @@ export function SiteHeader() {
           <Link href="/#how">How it works</Link>
           <Link href="/#pricing">Pricing</Link>
           <Link href="/#evidence">Evidence pack</Link>
+          <Link href="/vies-status">VIES status</Link>
           <Link href="/#faq">FAQ</Link>
         </nav>
         <Link href="/#order" className="btn btn-sm">

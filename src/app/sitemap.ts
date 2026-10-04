@@ -14,11 +14,15 @@ import { siteUrl } from "@/lib/site";
  * change, and leave it alone for a deploy that does not touch them.
  */
 const LEGAL_LAST_MODIFIED = "2026-09-12";
-const HOME_LAST_MODIFIED = "2026-09-30";
+const HOME_LAST_MODIFIED = "2026-10-04";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   return [
     { url: `${siteUrl}/`, lastModified: HOME_LAST_MODIFIED, changeFrequency: "monthly", priority: 1 },
+    // The status page changes every minute; "hourly" is the most a crawler is
+    // worth inviting back for, and lastmod is when the page itself last changed.
+    { url: `${siteUrl}/vies-status`, lastModified: "2026-10-04", changeFrequency: "hourly", priority: 0.9 },
+    { url: `${siteUrl}/vat-number-formats`, lastModified: "2026-10-04", changeFrequency: "monthly", priority: 0.8 },
     { url: `${siteUrl}/ai-plugin`, lastModified: "2026-10-03", changeFrequency: "monthly", priority: 0.8 },
     { url: `${siteUrl}/contact`, lastModified: LEGAL_LAST_MODIFIED, changeFrequency: "yearly", priority: 0.4 },
     { url: `${siteUrl}/terms`, lastModified: LEGAL_LAST_MODIFIED, changeFrequency: "yearly", priority: 0.3 },

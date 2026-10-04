@@ -1,6 +1,13 @@
+import type { Metadata } from "next";
 import { CONTACT } from "@/lib/contact";
 
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = {
+  title: "Refund policy",
+  description: "Rows VIES cannot answer are refunded automatically. How Vatidence refunds work.",
+  alternates: { canonical: "/refunds" },
+};
 
 export default function RefundsPage() {
   return (

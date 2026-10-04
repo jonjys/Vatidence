@@ -1,7 +1,14 @@
+import type { Metadata } from "next";
 import { CONTACT, OPERATOR_IDENTITY } from "@/lib/contact";
 import { env } from "@/lib/env";
 
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = {
+  title: "Privacy",
+  description: "What Vatidence stores, for how long, and why.",
+  alternates: { canonical: "/privacy" },
+};
 
 export default function PrivacyPage() {
   const config = env();

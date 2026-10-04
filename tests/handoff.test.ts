@@ -9,8 +9,11 @@ describe("free-to-paid handoff", () => {
     expect(free).toContain('className="escalate"');
     expect(free).not.toMatch(/className="link"/);
     expect(free).toContain("MINIMUM_ORDER_MINOR");
-    expect(free).toMatch(/Start a paid verification/);
-    expect(free).toMatch(/Next step is a paid verification/);
+    // The paid step is pitched as a list, never as one number: for a single
+    // number VIES issues a consultation number free, and the page says so.
+    expect(free).toMatch(/to a list verification/);
+    expect(free).toMatch(/Verify the whole list at once/);
+    expect(free).toMatch(/For one number you can do that yourself on the VIES website/);
   });
 
   it("makes the €4.90 floor obvious next to the live price and the published table", () => {

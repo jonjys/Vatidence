@@ -137,7 +137,7 @@ npm run lint && npm run typecheck && npm test && npm run build   # npm run verif
 
 Three suites, two of them opt-in:
 
-- default: 140 tests, no external dependencies.
+- default: about 200 tests, no external dependencies.
 - `TEST_DATABASE_URL=postgres://…` adds the Postgres-backed suites: the real
   production SQL, and the whole HTTP money path from `POST /api/orders`
   through a signed Stripe webhook to an automatically refunded, delivered
@@ -149,6 +149,22 @@ Three suites, two of them opt-in:
 CI runs the build with `DATABASE_URL` set so `scripts/migrate.ts` itself is
 exercised — the integration tests apply the migration SQL directly and would
 otherwise never execute the runner.
+
+## Live VIES status
+
+`/vies-status` and `GET /api/status` show `GET /check-status` (VIES's second
+REST endpoint) per member state. Both are statically cached and regenerated at
+most once a minute, so the Commission sees one request a minute from us however
+much traffic there is. Keep `fetchViesStatus` on `next: { revalidate: 60 }`:
+`cache: "no-store"` silently turns every page that reads it dynamic, and every
+visit into a request to VIES. Member states go offline independently and often
+(Germany was down on a Sunday morning when this was built), so the free check
+hides demo numbers from a member state that is down and warns before a check
+that will fail, and the order form says which rows will retry.
+
+Shared `/check/<number>` links re-run the check live in the visitor's browser
+and store nothing. They are `noindex` and disallowed in robots.txt, because a
+crawler following them would spend the Commission's capacity on nobody.
 
 ## Why there is a free check
 
