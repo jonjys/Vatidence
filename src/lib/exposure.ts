@@ -212,7 +212,7 @@ export function detectColumns(table: Table): ColumnMap {
 
 // ---------------------------------------------------------------- the report
 
-/** Amounts per currency, in minor units. "" is a file without a currency column. */
+/** Amounts per currency, in minor units. "" is a row with no currency and no fallback. */
 export type Money = Record<string, number>;
 
 export type NumberLine = { canonical: string; countryCode: CountryCode; rows: number; amount: Money };
@@ -240,7 +240,11 @@ function largest(money: Money): number {
   return Math.max(0, ...Object.values(money).map(Math.abs));
 }
 
-export function analyseExposure(table: Table, columns: ColumnMap): ExposureReport {
+/**
+ * `fallbackCurrency` is used for files without a currency column, and for
+ * rows whose currency cell is empty, so totals never come out unitless.
+ */
+export function analyseExposure(table: Table, columns: ColumnMap, fallbackCurrency = ""): ExposureReport {
   const byNumber = new Map<string, NumberLine>();
   const byInvalid = new Map<string, InvalidLine>();
   const totalWithVat: Money = {};
@@ -250,7 +254,8 @@ export function analyseExposure(table: Table, columns: ColumnMap): ExposureRepor
   for (const row of table.rows) {
     const raw = columns.vat === null ? "" : (row[columns.vat] ?? "").trim();
     const minor = columns.amount === null ? 0 : (parseAmountMinor(row[columns.amount] ?? "") ?? 0);
-    const currency = columns.currency === null ? "" : (row[columns.currency] ?? "").trim().toUpperCase();
+    const cell = columns.currency === null ? "" : (row[columns.currency] ?? "").trim().toUpperCase();
+    const currency = cell || fallbackCurrency;
 
     if (!raw) {
       rowsWithoutVat += 1;
@@ -338,3 +343,6 @@ export function readHandoff(raw: string | null): string[] {
     return [];
   }
 }
+
+/** Offered when a file has no currency column. */
+export const FALLBACK_CURRENCIES = ["EUR", "SEK", "DKK", "NOK", "PLN", "CZK", "HUF", "RON", "BGN", "CHF", "GBP", "USD"] as const;

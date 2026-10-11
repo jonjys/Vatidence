@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { COUNTRY_LIST } from "@/lib/countries";
 import {
+  FALLBACK_CURRENCIES,
   HANDOFF_KEY,
   HANDOFF_PARAM,
   STANDARD_RATE_BP,
@@ -47,6 +48,10 @@ export function ExposureScan() {
   const [seller, setSeller] = useState<CountryCode>("DE");
   const [error, setError] = useState<string | null>(null);
   const [dragging, setDragging] = useState(false);
+  const [pasting, setPasting] = useState(false);
+  const [pasted, setPasted] = useState("");
+  const [copied, setCopied] = useState(false);
+  const [fallbackCurrency, setFallbackCurrency] = useState<string>("EUR");
   const fileRef = useRef<HTMLInputElement>(null);
   const resultRef = useRef<HTMLDivElement>(null);
 
@@ -82,8 +87,8 @@ export function ExposureScan() {
   }
 
   const report = useMemo(
-    () => (table && columns.vat !== null ? analyseExposure(table, columns) : null),
-    [table, columns],
+    () => (table && columns.vat !== null ? analyseExposure(table, columns, fallbackCurrency) : null),
+    [table, columns, fallbackCurrency],
   );
   const rate = STANDARD_RATE_BP[seller];
   const sellerName = COUNTRY_LIST.find((c) => c.code === seller)?.name ?? seller;
@@ -100,6 +105,22 @@ export function ExposureScan() {
       return;
     }
     window.location.href = `/?from=${HANDOFF_PARAM}#order`;
+  }
+
+  async function share() {
+    if (!report) return;
+    const url = `${window.location.origin}/exposure`;
+    const found = report.numbers.length + report.invalid.length;
+    const text = hasAmounts
+      ? `Ran our sales export through a free reverse-charge scan: ${formatMoney(vatAt(report.totalWithVat, rate))} of VAT rides on ${found} customer VAT numbers${report.invalid.length ? `, ${report.invalid.length} of them malformed` : ""}. The file never leaves the browser: ${url}`
+      : `Free reverse-charge exposure scan for EU B2B sellers. The file never leaves the browser: ${url}`;
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2500);
+    } catch {
+      window.prompt("Copy this line:", text);
+    }
   }
 
   function column(key: keyof ColumnMap, label: string, hint: string) {
@@ -174,7 +195,26 @@ export function ExposureScan() {
           <button type="button" className="ghost" onClick={() => load(EXAMPLE_CSV, "example.csv")}>
             Try it with an example file
           </button>
+          <button type="button" className="ghost" aria-expanded={pasting} onClick={() => setPasting((v) => !v)}>
+            {pasting ? "Hide the paste box" : "Paste rows from a spreadsheet"}
+          </button>
         </div>
+        {pasting ? (
+          <div className="field exp-paste">
+            <label htmlFor="exp-paste">Rows copied from a spreadsheet</label>
+            <textarea
+              id="exp-paste"
+              spellCheck={false}
+              placeholder={"Customer VAT\tTotal\nDE811907980\t4200.00\nFR40303265045\t1850.00"}
+              value={pasted}
+              onChange={(e) => setPasted(e.target.value)}
+            />
+            <p className="hint">Copy the cells including the header row. Like a file, they never leave this browser.</p>
+            <button type="button" disabled={!pasted.trim()} onClick={() => load(pasted, "pasted rows")}>
+              Scan these rows
+            </button>
+          </div>
+        ) : null}
         {error ? (
           <p className="error" role="alert">
             {error}
@@ -195,6 +235,19 @@ export function ExposureScan() {
               {column("amount", "Amount", "Net or total per sale. On a 0% invoice they are the same.")}
               {column("currency", "Currency", "Optional. Totals are kept per currency.")}
             </div>
+            {columns.currency === null && columns.amount !== null ? (
+              <div className="field exp-col">
+                <label htmlFor="fallback-currency">Amounts are in</label>
+                <select id="fallback-currency" value={fallbackCurrency} onChange={(e) => setFallbackCurrency(e.target.value)}>
+                  {FALLBACK_CURRENCIES.map((code) => (
+                    <option key={code} value={code}>
+                      {code}
+                    </option>
+                  ))}
+                </select>
+                <p className="hint">This file has no currency column.</p>
+              </div>
+            ) : null}
             <div className="field exp-col">
               <label htmlFor="seller">Your business is VAT-registered in</label>
               <select id="seller" value={seller} onChange={(e) => setSeller(e.target.value as CountryCode)}>
@@ -328,6 +381,15 @@ export function ExposureScan() {
                 </button>
               </div>
             ) : null}
+
+            <div className="list-actions">
+              <button type="button" className="ghost" onClick={() => void share()}>
+                {copied ? "Copied" : "Copy a line to share this result"}
+              </button>
+              <span className="hint" aria-live="polite">
+                {copied ? "Paste it anywhere. It holds the totals only, no customer numbers." : ""}
+              </span>
+            </div>
 
             <p className="hint exp-fine">
               An estimate, not tax advice. It assumes every sale in the file was invoiced at 0% under the reverse
