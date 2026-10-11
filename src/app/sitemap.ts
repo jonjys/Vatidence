@@ -22,6 +22,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     // The status page changes every minute; "hourly" is the most a crawler is
     // worth inviting back for, and lastmod is when the page itself last changed.
     { url: `${siteUrl}/vies-status`, lastModified: "2026-10-04", changeFrequency: "hourly", priority: 0.9 },
+    { url: `${siteUrl}/exposure`, lastModified: "2026-10-11", changeFrequency: "monthly", priority: 0.9 },
     { url: `${siteUrl}/vat-number-formats`, lastModified: "2026-10-04", changeFrequency: "monthly", priority: 0.8 },
     { url: `${siteUrl}/ai-plugin`, lastModified: "2026-10-03", changeFrequency: "monthly", priority: 0.8 },
     { url: `${siteUrl}/contact`, lastModified: LEGAL_LAST_MODIFIED, changeFrequency: "yearly", priority: 0.4 },

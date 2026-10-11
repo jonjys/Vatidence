@@ -7,6 +7,7 @@ import { CHECKOUT_NETWORK, CHECKOUT_NOT_STARTED, checkoutErrorMessage, readJsonB
 import { CONTACT, OPERATOR_TAX_STATUS } from "@/lib/contact";
 import { COUNTRIES } from "@/lib/countries";
 import { exampleVatListText } from "@/lib/demo-vats";
+import { HANDOFF_KEY, HANDOFF_PARAM, readHandoff } from "@/lib/exposure";
 import { MAX_ROWS, MAX_UPLOAD_BYTES } from "@/lib/limits";
 import { MINIMUM_ORDER_MINOR, formatLiveQuoteHint, formatMinor, minimumFloorExplanation, quote } from "@/lib/pricing";
 import { parseVat, parseVatList } from "@/lib/vat";
@@ -59,6 +60,28 @@ export function OrderForm({ seed }: { seed?: OrderFormSeed | null } = {}) {
     if (addedParsed?.ok) {
       setList(addedParsed.value.canonical);
       setSeedNotice(`Added ${addedParsed.value.canonical}. Paste the rest of your list, then enter your own VAT number.`);
+    }
+
+    // The exposure scan hands over the numbers it found in a sales export.
+    // They travel through sessionStorage, not the URL: a list can be
+    // thousands long, and a URL ends up in logs and browser history.
+    if (params.get("from") === HANDOFF_PARAM) {
+      let handed: string[] = [];
+      try {
+        handed = readHandoff(sessionStorage.getItem(HANDOFF_KEY));
+        sessionStorage.removeItem(HANDOFF_KEY);
+      } catch {
+        // storage blocked; nothing to pre-fill
+      }
+      if (handed.length > 0) {
+        setList(handed.join("\n"));
+        setSeedNotice(
+          `Loaded ${handed.length} VAT number${handed.length === 1 ? "" : "s"} from your exposure scan. Enter your own VAT number to pay.`,
+        );
+        requestAnimationFrame(() =>
+          document.getElementById("order")?.scrollIntoView({ behavior: "smooth", block: "start" }),
+        );
+      }
     }
 
     const token = params.get("relist");

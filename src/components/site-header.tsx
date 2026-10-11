@@ -24,6 +24,7 @@ export function SiteHeader() {
       <div className="wrap header-row">
         <Logo />
         <nav className="site-nav" aria-label="Vatidence">
+          <Link href="/exposure">Exposure scan</Link>
           <Link href="/#how">How it works</Link>
           <Link href="/#pricing">Pricing</Link>
           <Link href="/#evidence">Evidence pack</Link>
