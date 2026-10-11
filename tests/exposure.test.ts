@@ -117,6 +117,13 @@ describe("the exposure report", () => {
     expect(formatMoney(vatAt(report.totalWithVat, STANDARD_RATE_BP.DE))).toBe("€523");
   });
 
+  it("uses the fallback currency when the file has none, so totals are never unitless", () => {
+    const bare = toTable(parseCsv("vat;amount\nDE811907980;1 200,00\nFR40303265045;300,50"));
+    const r = analyseExposure(bare, detectColumns(bare), "SEK");
+    expect(r.totalWithVat).toEqual({ SEK: 150050 });
+    expect(formatMoney(vatAt(r.totalWithVat, 2500))).toMatch(/SEK/);
+  });
+
   it("works without an amount column", () => {
     const bare = toTable(parseCsv("vat\nDE811907980\nDE811907980\nbad1"));
     const r = analyseExposure(bare, detectColumns(bare));

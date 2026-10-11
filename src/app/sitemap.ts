@@ -14,7 +14,7 @@ import { siteUrl } from "@/lib/site";
  * change, and leave it alone for a deploy that does not touch them.
  */
 const LEGAL_LAST_MODIFIED = "2026-09-12";
-const HOME_LAST_MODIFIED = "2026-10-04";
+const HOME_LAST_MODIFIED = "2026-10-11";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   return [
@@ -28,6 +28,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${siteUrl}/contact`, lastModified: LEGAL_LAST_MODIFIED, changeFrequency: "yearly", priority: 0.4 },
     { url: `${siteUrl}/terms`, lastModified: LEGAL_LAST_MODIFIED, changeFrequency: "yearly", priority: 0.3 },
     { url: `${siteUrl}/refunds`, lastModified: LEGAL_LAST_MODIFIED, changeFrequency: "yearly", priority: 0.3 },
-    { url: `${siteUrl}/privacy`, lastModified: LEGAL_LAST_MODIFIED, changeFrequency: "yearly", priority: 0.3 },
+    { url: `${siteUrl}/privacy`, lastModified: "2026-10-11", changeFrequency: "yearly", priority: 0.3 },
   ];
 }

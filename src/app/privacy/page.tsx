@@ -35,6 +35,13 @@ export default function PrivacyPage() {
         read that order, so treat it as confidential.
       </p>
 
+      <h2>Exposure scan</h2>
+      <p>
+        A file dropped on the exposure scan is read and analysed in your browser. It is never uploaded, and nothing
+        from it reaches this service unless you choose to verify the VAT numbers it contains: then only those numbers
+        are carried to the order form, as if you had pasted them.
+      </p>
+
       <h2>Page-view statistics</h2>
       <p>
         Page views are counted with Vercel Web Analytics, served from this domain. It sets no cookies and stores no

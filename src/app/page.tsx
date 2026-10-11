@@ -30,6 +30,11 @@ const FAQ: ReadonlyArray<{ q: string; a: string; link?: { href: string; label: s
     link: { href: "/vies-status", label: "See which member states are answering right now" },
   },
   {
+    q: "How much VAT do I risk on my 0% EU sales?",
+    a: "If a buyer’s VAT number turns out to be invalid, or you cannot show it was valid, the 0% can be refused and the VAT becomes yours to pay, usually at your own standard rate. The free exposure scan reads a Stripe or accounting export in your browser and shows that amount customer by customer, plus any numbers that are malformed outright.",
+    link: { href: "/exposure", label: "Run the free exposure scan" },
+  },
+  {
     q: "Is a “not valid” result refunded?",
     a: "No. “Not valid” is an answer, and often the most useful one in the batch. Lines that are not EU VAT numbers at all are rejected before payment and never charged.",
   },

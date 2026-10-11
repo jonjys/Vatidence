@@ -1179,5 +1179,8 @@ a.live-down:hover { background: #fbd0c7; color: #5c120a; }
 .exp-cta .pay-cta:hover { color: var(--ink); box-shadow: 0 0 0 3px var(--ink); }
 @media (max-width: 520px) { .exp-cta .pay-cta { width: 100%; } }
 .exp-fine { margin-top: 1.25rem; }
+.exp-paste { margin: 1rem 0 0; }
+.exp-paste textarea { min-height: 8rem; margin-bottom: 0.75rem; }
+.exp-paste .hint { margin-bottom: 0.75rem; }
 .hero-scan { margin: 1.25rem 0 0; font-size: 0.95rem; color: var(--ink-soft); }
 .hero-scan a { color: var(--ink); font-weight: 700; text-decoration-color: var(--accent); text-decoration-thickness: 2px; text-underline-offset: 3px; }
