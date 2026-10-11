@@ -82,6 +82,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <Link href="/">Home</Link>
               <Link href="/#pricing">Pricing</Link>
               <Link href="/vies-status">VIES status</Link>
+              <Link href="/exposure">Exposure scan</Link>
               <Link href="/vat-number-formats">VAT number formats</Link>
               <Link href="/ai-plugin">AI plugin</Link>
               <Link href="/contact">Contact</Link>

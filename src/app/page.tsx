@@ -127,6 +127,12 @@ export default function HomePage() {
                 Unanswered rows refunded automatically
               </li>
             </ul>
+            <p className="hero-scan">
+              Invoicing EU businesses at 0%?{" "}
+              <Link href="/exposure">
+                See how much VAT rides on your customers&apos; numbers, free {arrow}
+              </Link>
+            </p>
           </div>
           <HeroScene />
         </div>

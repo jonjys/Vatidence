@@ -25,6 +25,7 @@ describe("sitemap", () => {
     expect(sitemap().map((e) => e.url)).toEqual([
       "https://vatidence.nyttolabs.com/",
       "https://vatidence.nyttolabs.com/vies-status",
+      "https://vatidence.nyttolabs.com/exposure",
       "https://vatidence.nyttolabs.com/vat-number-formats",
       "https://vatidence.nyttolabs.com/ai-plugin",
       "https://vatidence.nyttolabs.com/contact",
